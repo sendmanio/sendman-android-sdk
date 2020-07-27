@@ -1,0 +1,35 @@
+<io.sendman.sendman.views.SendManNotificationGroup
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="15dp"
+    android:id="@+id/categoryGroup"
+    >
+
+    <TextView
+        android:id="@+id/categoryGroupHeader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:textAllCaps="true"
+        android:visibility="gone"
+        android:paddingVertical="10dp"
+        android:paddingHorizontal="20dp"/>
+
+    <LinearLayout
+        android:id="@+id/categoriesList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/categoryGroupFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:visibility="gone"
+        android:textSize="12sp"
+        android:paddingHorizontal="20dp"/>
+
+</io.sendman.sendman.views.SendManNotificationGroup>

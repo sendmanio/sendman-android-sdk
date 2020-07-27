@@ -1,0 +1,16 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@android:color/holo_blue_light"
+    android:id="@+id/notificationsView"
+    android:layout_height="match_parent"
+    android:paddingTop="10dp">
+
+        <io.sendman.sendman.views.SendManListView
+            android:id="@+id/notificationsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:divider="#00000000"
+            android:background="@android:color/transparent"/>
+
+</ScrollView>
