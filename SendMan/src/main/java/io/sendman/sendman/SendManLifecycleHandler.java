@@ -1,186 +1,188 @@
 package io.sendman.sendman;
 
-public class SendManLifecycleHandler {
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.os.Build;
+import android.util.Log;
 
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.lifecycle.OnLifecycleEvent;
+import androidx.lifecycle.ProcessLifecycleOwner;
+import io.sendman.sendman.models.SendManMessageMetadata;
+import io.sendman.sendman.models.SendManSDKEvent;
+
+public class SendManLifecycleHandler implements LifecycleObserver {
+
+	private static final String TAG = SendManLifecycleHandler.class.getSimpleName();
+	private static SendManLifecycleHandler instance = null;
+
+	private String fcmToken;
+	private Context applicationContext;
+	private SendManDatabase sendManDatabase;
+	private boolean inForeground;
+	private boolean isLaunch = true;
+	private SendManMessageMetadata latestUnprocessedMessageMetadata;
+	private Set<String> reportedActivityIds = new HashSet<>();
+
+	public synchronized static SendManLifecycleHandler getInstance() {
+		if (instance == null) {
+			instance = new SendManLifecycleHandler();
+		}
+		return instance;
+	}
+
+	public void onCreate(final Context context) {
+		applicationContext = context.getApplicationContext();
+		sendManDatabase = new SendManDatabase(applicationContext);
+
+		FirebaseInstanceId.getInstance().getInstanceId()
+				.addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+					@Override
+					public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "getInstanceId failed", task.getException());
+                            return;
+                        }
+
+						// Get new Instance ID token
+						InstanceIdResult result = task.getResult();
+						if (result != null) {
+							String token = result.getToken();
+							Log.i(TAG, "Received FCM token: " + token);
+							SendMan.setFCMToken(token);
+						}
+					}
+				});
+
+		ProcessLifecycleOwner.get().getLifecycle().addObserver(SendManLifecycleHandler.getInstance());
+	}
+
+	/* --- Public Methods --- */
+
+	public boolean isInForeground() {
+		return inForeground;
+	}
+
+	public String getNotificationRegistrationState() {
+		return getChannelConfiguration() == null ? "Off" : "On";
+	}
+
+
+	/* --- Broadcast Receiver callbacks --- */
+
+	public void onMessageReceived(SendManMessageMetadata metadata) {
+		if (metadata == null) {
+			Log.w(TAG, "Cannot report SendMan data for null data.");
+			return;
+		}
+
+		if (isInForeground()) {
+			SendManSDKEvent event = new SendManSDKEvent("Foreground Message Received", null);
+			event.setActivityId(metadata.getActivityId());
+			event.setMessageId(metadata.getMessageId());
+			event.setAppState("Active");
+			SendManDataCollector.addSdkEvent(event);
+		}
+	}
+
+	public void onMessageClicked(SendManMessageMetadata metadata) {
+		latestUnprocessedMessageMetadata = metadata;
+	}
+
+	// TODO
+	public void onMessageDismissed(SendManMessageMetadata metadata) {}
+
+	/* --- LifeCycle events --- */
+
+	@OnLifecycleEvent(Lifecycle.Event.ON_START)
+	public void onMoveToForeground() {
+		inForeground = true;
+
+		if (shouldReportEngagement()) {
+			SendManSDKEvent engagementEvent = new SendManSDKEvent("Background Message Opened", null);
+			String activityId = latestUnprocessedMessageMetadata.getActivityId();
+			engagementEvent.setActivityId(activityId);
+			engagementEvent.setMessageId(latestUnprocessedMessageMetadata.getMessageId());
+			engagementEvent.setAppState(isLaunch ? "Killed" : "Background");
+			SendManDataCollector.addSdkEvent(engagementEvent);
+			reportedActivityIds.add(activityId);
+		}
+
+		SendManSDKEvent foregroundEvent;
+		if (isLaunch) {
+			foregroundEvent = new SendManSDKEvent("App launched", null);
+			foregroundEvent.setAppState("Killed");
+		} else {
+			foregroundEvent = new SendManSDKEvent("App entered foreground", null);
+			foregroundEvent.setAppState("Background");
+		}
+		SendManDataCollector.addSdkEvent(foregroundEvent);
+
+		String previousNotificationRegistrationState = sendManDatabase.getNotificationRegistrationState();
+		String currentNotificationRegistrationState = this.getNotificationRegistrationState();
+
+		if (!previousNotificationRegistrationState.equals(currentNotificationRegistrationState)) {
+			SendManSDKEvent registrationStatusEvent = new SendManSDKEvent("Notification Registration State Updated", currentNotificationRegistrationState);
+			sendManDatabase.setNotificationRegistrationState(currentNotificationRegistrationState);
+			SendManDataCollector.addSdkEvent(registrationStatusEvent);
+			SendManDataCollector.setSdkProperties(Collections.singletonMap("SMNotificationsRegistrationState", currentNotificationRegistrationState));
+		}
+
+		latestUnprocessedMessageMetadata = null;
+		isLaunch = false;
+	}
+
+	@OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+	public void onMoveToBackground() {
+		inForeground = false;
+	}
+
+	/* --- Private Methods --- */
+
+	private Map<String, Boolean> getChannelConfiguration() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			NotificationManager manager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
+			if (!manager.areNotificationsEnabled()) {
+				return null;
+			}
+
+			List<NotificationChannel> channels = manager.getNotificationChannels();
+			Map<String, Boolean> channelsToEnabled = new HashMap<>();
+			for (NotificationChannel channel : channels) {
+				channelsToEnabled.put(channel.getId(), channel.getImportance() != NotificationManager.IMPORTANCE_NONE);
+			}
+			return channelsToEnabled;
+		} else {
+			return NotificationManagerCompat.from(applicationContext).areNotificationsEnabled() ? Collections.<String, Boolean>emptyMap() : null;
+		}
+	}
+
+	private boolean shouldReportEngagement() {
+		return (
+			latestUnprocessedMessageMetadata != null &&
+			!reportedActivityIds.contains(latestUnprocessedMessageMetadata.getActivityId()) &&
+			isRecentTimestamp(latestUnprocessedMessageMetadata.getDeserializationTimestamp())
+		);
+	}
+
+	private boolean isRecentTimestamp(long timestamp) {
+		return System.currentTimeMillis() - timestamp < 1000;
+	}
 }
-
-
-//@interface SMLifecycleHandler ()
-//
-//@property (strong, nonatomic, nullable) NSMutableArray *lastMessageActivities;
-//
-//@end
-//
-//@implementation SMLifecycleHandler
-//
-//        # pragma mark - Constructor and Singletong Access
-//
-//        + (id)sharedManager {
-//static SMDataCollector *sharedManager = nil;
-//static dispatch_once_t onceToken;
-//        dispatch_once(&onceToken, ^{
-//        sharedManager = [[self alloc] init];
-//        [[NSNotificationCenter defaultCenter] addObserver:sharedManager selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
-//        });
-//        return sharedManager;
-//        }
-//
-//        # pragma mark - Cache
-//        - (void)saveLastMessageActivity:(NSString *)activityId {
-//        if (!self.lastMessageActivities) {
-//        self.lastMessageActivities = [[NSMutableArray alloc] init];
-//        }
-//        [self.lastMessageActivities addObject:activityId];
-//        self.lastMessageActivities = [NSMutableArray arrayWithArray:[self.lastMessageActivities subarrayWithRange:NSMakeRange(0, MIN([self.lastMessageActivities count], 100))]];
-//        }
-//
-//        # pragma mark - Data collection
-//
-//        - (void)didOpenMessage:(NSString *)messageId forActivity:(NSString *)activityId atState:(UIApplicationState)appState {
-//        [self didOpenMessage:messageId forActivity:activityId atState:appState withOnSuccess:nil];
-//        }
-//
-//        - (void)didOpenMessage:(NSString *)messageId forActivity:(NSString *)activityId atState:(UIApplicationState)appState withOnSuccess:(void (^)(void))onSuccess {
-//        if ([self.lastMessageActivities containsObject:activityId]) {
-//        NSLog(@"Activity already handled previously");
-//        } else {
-//        [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
-//        [self saveLastMessageActivity:activityId];
-//
-//        SMSDKEvent *event = [SMSDKEvent new];
-//        event.key = [self eventNameByAppState:appState andAuthorizationStatus:settings.authorizationStatus];
-//        event.appState = [self appStateStringFromState:appState];
-//        event.messageId = messageId;
-//        event.activityId = activityId;
-//        [SMDataCollector addSdkEvent:event];
-//
-//        if (onSuccess) onSuccess();
-//        }];
-//        }
-//        }
-//
-//        - (void)didOpenApp {
-//        SMSDKEvent *event = [SMSDKEvent new];
-//        event.key = @"App launched";
-//        event.appState = [self appStateStringFromState:-1];
-//        [SMDataCollector addSdkEvent:event];
-//        }
-//
-//        - (NSString *)appStateStringFromState:(UIApplicationState)state {
-//        switch (state) {
-//        case UIApplicationStateActive:
-//        return @"Active";
-//        case UIApplicationStateInactive:
-//        return @"Inactive";
-//        case UIApplicationStateBackground:
-//        return @"Background";
-//default:
-//        return @"Killed";
-//        }
-//        }
-//
-//        - (void)applicationWillEnterForeground {
-//        SMSDKEvent *event = [SMSDKEvent new];
-//        event.key = @"App entered foreground";
-//        event.appState = [self appStateStringFromState:UIApplicationStateBackground];
-//        [SMDataCollector addSdkEvent:event];
-//
-//        [self checkNotificationRegistrationState];
-//        [[UIApplication sharedApplication] registerForRemoteNotifications];
-//        }
-//
-//        - (void)checkNotificationRegistrationState {
-//        NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-//        [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
-//        NSString *regisrationState = [SMDataCollector getRegistrationStateFromStatus:settings.authorizationStatus];
-//        NSString *prevRegistrationState = [userDefaults stringForKey:SMNotificationsRegistrationStateKey];
-//        if (![regisrationState isEqualToString:prevRegistrationState]) {
-//        [userDefaults setObject:regisrationState forKey:SMNotificationsRegistrationStateKey];
-//        SMSDKEvent *event = [SMSDKEvent new];
-//        event.key = @"Notification Registration State Updated";
-//        event.value = regisrationState;
-//        [SMDataCollector addSdkEvent:event];
-//        [SMDataCollector setSdkProperties:@{SMNotificationsRegistrationStateKey:regisrationState}];
-//        }
-//        }];
-//        }
-//
-//
-//        - (void)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-//        [self checkNotificationRegistrationState];
-//        NSDictionary *pushNotification = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
-//        if (pushNotification) {
-//        [self didOpenMessage:pushNotification[@"messageId"] forActivity:pushNotification[@"activityId"] atState:-1 withOnSuccess:^{
-//        [self didOpenApp];
-//        }];
-//        } else {
-//        [self didOpenApp];
-//        }
-//        [[UIApplication sharedApplication] registerForRemoteNotifications];
-//        }
-//
-//        - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-//        [self checkNotificationRegistrationState];
-//
-//        const char *data = [deviceToken bytes];
-//        NSMutableString *token = [NSMutableString string];
-//
-//        for (NSUInteger i = 0; i < [deviceToken length]; i++) {
-//        [token appendFormat:@"%02.2hhX", data[i]];
-//        }
-//        // Should create some other token by copying this string
-//        NSLog(@"The registered device token is: %@", token);
-//
-//        [Sendman setAPNToken:token];
-//        }
-//
-//        - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
-//        SMSDKEvent *event = [SMSDKEvent new];
-//        event.key = @"Failed to register to push notifications";
-//        [SMDataCollector addSdkEvent:event];
-//        }
-//
-//        - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {}
-//
-//        - (void)userNotificationCenter:(UNUserNotificationCenter *)center openSettingsForNotification:(UNNotification *)notification {}
-//
-//        - (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
-//        NSDictionary *pushNotification = notification.request.content.userInfo;
-//        if (pushNotification) {
-//        [self didOpenMessage:pushNotification[@"messageId"] forActivity:pushNotification[@"activityId"] atState:[[UIApplication sharedApplication] applicationState]];
-//        }
-//        }
-//
-//        - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler {
-//        NSDictionary *pushNotification = response.notification.request.content.userInfo;
-//        if (pushNotification) {
-//        [self didOpenMessage:pushNotification[@"messageId"] forActivity:pushNotification[@"activityId"] atState:[[UIApplication sharedApplication] applicationState]];
-//        }
-//        }
-//
-//        - (void)registerForRemoteNotifications:(void (^)(BOOL granted))success {
-//        [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionSound | UNAuthorizationOptionAlert | UNAuthorizationOptionBadge)
-//        completionHandler:^(BOOL granted, NSError * _Nullable error) {
-//        NSLog(@"Push notification permission granted: %d", granted);
-//        // ?
-//        // TODO: should check if authorized
-//        dispatch_async(dispatch_get_main_queue(), ^(){
-//        if (granted) {
-//        [[UIApplication sharedApplication] registerForRemoteNotifications];
-//        }
-//        if (success) success(granted);
-//        });
-//        }];
-//        }
-//
-//        - (NSString *)eventNameByAppState:(UIApplicationState)state andAuthorizationStatus:(UNAuthorizationStatus)status {
-//        if (status == UNAuthorizationStatusDenied) {
-//        return @"Blocked Message Received";
-//        } else if (status == UNAuthorizationStatusNotDetermined) {
-//        return @"Pre-Authorization Message Received";
-//        }
-//
-//        return state == UIApplicationStateActive ? @"Foreground Message Received" : @"Background Message Opened";
-//        }
-//
-//@end

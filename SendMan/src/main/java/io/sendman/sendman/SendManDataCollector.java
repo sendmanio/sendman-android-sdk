@@ -90,8 +90,7 @@ public class SendManDataCollector {
         SendManDataCollector collector = SendManDataCollector.getInstance();
         long now = new Date().getTime();
         event.setTimestamp(now);
-//        [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
-//        event.notificationsRegistrationState = [self getRegistrationStateFromStatus:settings.authorizationStatus];
+        event.setNotificationsRegistrationState(SendManLifecycleHandler.getInstance().getNotificationRegistrationState());
         collector.sdkEvents.add(event);
     }
 

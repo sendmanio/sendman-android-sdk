@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "785278910613",
+    "firebase_url": "https://sendman-io.firebaseio.com",
+    "project_id": "sendman-io",
+    "storage_bucket": "sendman-io.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:785278910613:android:b94ba4965042ec0d9e5b9c",
+        "android_client_info": {
+          "package_name": "io.sendman.example"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "785278910613-gi7h73dr1orvra1l4gn0s6qpg9tume8t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFJoV3oG1f74mXIbmHTV8H98tuK5w9lrE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "785278910613-gi7h73dr1orvra1l4gn0s6qpg9tume8t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

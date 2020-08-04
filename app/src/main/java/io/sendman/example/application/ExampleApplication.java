@@ -3,6 +3,8 @@ package io.sendman.example.application;
 import android.app.Application;
 import android.content.Context;
 
+import io.sendman.sendman.SendMan;
+
 public class ExampleApplication extends Application {
 
     private static ExampleApplication instance;
@@ -11,6 +13,8 @@ public class ExampleApplication extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
+
+        SendMan.onCreate(this);
     }
 
     /** --- Static Methods --- */
