@@ -1,15 +1,14 @@
 package io.sendman.sendman.models;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.Map;
 
 public class SendManData {
     private String userId;
     private String externalUserId;
     private SendManSession currentSession;
-    private HashMap<String, SendManPropertyValue> customProperties;
-    private HashMap<String, SendManPropertyValue> sdkProperties;
+    private Map<String, SendManPropertyValue> customProperties;
+    private Map<String, SendManPropertyValue> sdkProperties;
     private ArrayList<SendManCustomEvent> customEvents;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
@@ -25,11 +24,11 @@ public class SendManData {
         this.currentSession = currentSession;
     }
 
-    public void setCustomProperties(HashMap<String, SendManPropertyValue> customProperties) {
+    public void setCustomProperties(Map<String, SendManPropertyValue> customProperties) {
         this.customProperties = customProperties;
     }
 
-    public void setSdkProperties(HashMap<String, SendManPropertyValue> sdkProperties) {
+    public void setSdkProperties(Map<String, SendManPropertyValue> sdkProperties) {
         this.sdkProperties = sdkProperties;
     }
 

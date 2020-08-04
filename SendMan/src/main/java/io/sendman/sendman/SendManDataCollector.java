@@ -1,7 +1,5 @@
 package io.sendman.sendman;
 
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,8 +22,8 @@ public class SendManDataCollector {
     private UUID sessionId;
     private long sessionIdStartTimestamp;
 
-    private HashMap<String, SendManPropertyValue> customProperties;
-    private HashMap<String, SendManPropertyValue> sdkProperties;
+    private Map<String, SendManPropertyValue> customProperties;
+    private Map<String, SendManPropertyValue> sdkProperties;
     private ArrayList<SendManCustomEvent> customEvents;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
@@ -63,22 +61,22 @@ public class SendManDataCollector {
         SendManDataCollector.addPropertiesToMap(SendManDataEnricher.getUserEnrichedData(), collector.sdkProperties);
     }
 
-    private static void addPropertiesToMap(HashMap<String, String> newProperties, HashMap<String, SendManPropertyValue> currProperties) {
+    private static void addPropertiesToMap(Map<String, String> newProperties, Map<String, SendManPropertyValue> currProperties) {
         long now = new Date().getTime();
         for(Map.Entry<String, String> property : newProperties.entrySet()) {
             currProperties.put(property.getKey(), new SendManPropertyValue(property.getValue(), now));
         }
     }
 
-    public static void setUserProperties(HashMap<String, String> properties) {
+    public static void setUserProperties(Map<String, String> properties) {
         SendManDataCollector.addPropertiesToMap(properties, SendManDataCollector.getInstance().customProperties);
     }
 
-    public static void setSdkProperties(HashMap<String, String> properties) {
+    public static void setSdkProperties(Map<String, String> properties) {
         SendManDataCollector.addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties);
     }
 
-    public static void addUserEvents(HashMap<String, Object> events) {
+    public static void addUserEvents(Map<String, Object> events) {
         SendManDataCollector collector = SendManDataCollector.getInstance();
         long now = new Date().getTime();
         for(Map.Entry<String, Object> event : events.entrySet()) {
@@ -108,21 +106,21 @@ public class SendManDataCollector {
         data.setExternalUserId(SendMan.getUserId());
         data.setCurrentSession(new SendManSession(this.sessionId, this.sessionIdStartTimestamp, new Date().getTime()));
 
-        final HashMap<String, SendManPropertyValue> currentCustomProperties = this.customProperties;
+        final Map<String, SendManPropertyValue> currentCustomProperties = this.customProperties;
         data.setCustomProperties(this.customProperties);
-        this.customProperties = new HashMap<String, SendManPropertyValue>();
+        this.customProperties = new HashMap<>();
 
-        final HashMap<String, SendManPropertyValue> currentSDKProperties = this.sdkProperties;
+        final Map<String, SendManPropertyValue> currentSDKProperties = this.sdkProperties;
         data.setSdkProperties(this.sdkProperties);
-        this.sdkProperties = new HashMap<String, SendManPropertyValue>();
+        this.sdkProperties = new HashMap<>();
 
         final ArrayList<SendManCustomEvent> currentCustomEvents = this.customEvents;
         data.setCustomEvents(this.customEvents);
-        this.customEvents = new ArrayList<SendManCustomEvent>();
+        this.customEvents = new ArrayList<>();
 
         final ArrayList<SendManSDKEvent> currentSDKEvents = this.sdkEvents;
         data.setSdkEvents(this.sdkEvents);
-        this.sdkEvents = new ArrayList<SendManSDKEvent>();
+        this.sdkEvents = new ArrayList<>();
 
         SendManAPIHandler.sendData(data, new SendManAPIHandler.APICallback() {
             @Override

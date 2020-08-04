@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.sendman.example">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".application.ExampleApplication"
         android:allowBackup="true"
@@ -11,7 +13,8 @@
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".activities.NotificationsActivity"></activity>
+
+        <activity android:name=".activities.NotificationsActivity" />
         <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,7 +23,5 @@
             </intent-filter>
         </activity>
     </application>
-
-    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>
