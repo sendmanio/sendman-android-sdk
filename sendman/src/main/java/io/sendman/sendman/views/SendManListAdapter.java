@@ -4,16 +4,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.sendman.sendman.models.SendManIdentifiable;
 
 public class SendManListAdapter<T extends SendManIdentifiable> extends BaseAdapter {
 
-    private ArrayList<T> objects;
+    private List<T> objects;
 
-    public SendManListAdapter(ArrayList<T> objects) {
+    public SendManListAdapter(List<T> objects) {
         this.objects = objects;
     }
 

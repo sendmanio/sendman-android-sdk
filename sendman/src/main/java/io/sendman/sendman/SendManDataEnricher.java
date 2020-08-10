@@ -4,6 +4,7 @@ import android.os.Build;
 
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 class SendManDataEnricher {
     private final static String SM_COUNTRY_CODE_KEY = "SMCountryCode";
@@ -12,7 +13,7 @@ class SendManDataEnricher {
     private final static String SM_DEVICE_SYSTEM_VERSION_KEY = "SMDeviceSystemVersion";
     private final static String SM_DEVICE_MODEL_KEY = "SMDeviceModel";
 
-    static HashMap<String, String> getUserEnrichedData() {
+    static Map<String, String> getUserEnrichedData() {
         HashMap<String, String> enrichedData = new HashMap<String, String>();
         enrichedData.put(SM_COUNTRY_CODE_KEY, Locale.getDefault().getCountry());
         enrichedData.put(SM_LANGUAGE_KEY, Locale.getDefault().getLanguage());

@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import io.sendman.sendman.R;
 import io.sendman.sendman.SendMan;
@@ -20,7 +20,7 @@ public class SendManNotificationsView extends FrameLayout {
 
     private SendManColors sendManColors;
 
-    private ArrayList<SendManCategory> allCategories;
+    private List<SendManCategory> allCategories;
 
     public SendManNotificationsView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -81,7 +81,7 @@ public class SendManNotificationsView extends FrameLayout {
 
     private class NotificationsListAdapter extends SendManListAdapter {
 
-        NotificationsListAdapter(ArrayList<SendManCategory> allCategories) {
+        NotificationsListAdapter(List<SendManCategory> allCategories) {
             super(allCategories);
         }
 

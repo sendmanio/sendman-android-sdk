@@ -7,6 +7,8 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import io.sendman.sendman.models.SendManCategory;
 
@@ -18,7 +20,7 @@ public class SendMan {
 
     private SendManConfig config;
     private String smUserId;
-    private ArrayList<SendManCategory> categories;
+    private List<SendManCategory> categories;
 
 
     public synchronized static SendMan getInstance() {
@@ -36,7 +38,7 @@ public class SendMan {
         return SendMan.getInstance().smUserId;
     }
 
-    public static ArrayList<SendManCategory> getCategories() {
+    public static List<SendManCategory> getCategories() {
         return SendMan.getInstance().categories != null ? SendMan.getInstance().categories  : new ArrayList<SendManCategory>();
     }
 
@@ -54,11 +56,11 @@ public class SendMan {
         SendManDataCollector.setSdkProperties(Collections.singletonMap(SM_FCM_TOKEN, token));
     }
 
-    public static void setUserCategories(ArrayList<SendManCategory> categories) {
+    public static void setUserCategories(List<SendManCategory> categories) {
         SendMan.getInstance().categories = categories;
     }
 
-    public static void setUserProperties(HashMap<String, String> properties) {
+    public static void setUserProperties(Map<String, String> properties) {
         SendManDataCollector.setUserProperties(properties);
     }
 

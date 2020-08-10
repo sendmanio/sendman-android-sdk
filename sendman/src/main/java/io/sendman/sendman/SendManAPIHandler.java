@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import io.sendman.sendman.models.SendManCategories;
@@ -79,7 +80,7 @@ public class SendManAPIHandler {
                 } else {
                     try {
                         JSONObject jsonResponse = new JSONObject(Objects.requireNonNull(response.body()).string());
-                        ArrayList<SendManCategory> categories = SendManCategories.fromJson(jsonResponse.getJSONArray("categories"));
+                        List<SendManCategory> categories = SendManCategories.fromJson(jsonResponse.getJSONArray("categories"));
                         SendMan.setUserCategories(categories);
                         if (callback != null) {
                             callback.onCategoriesRetrieved();
@@ -94,7 +95,7 @@ public class SendManAPIHandler {
         });
     }
 
-    public static void updateCategories(ArrayList<SendManCategory> categories) {
+    public static void updateCategories(List<SendManCategory> categories) {
         OkHttpClient client = SendManAPIHandler.getSendManClient();
         JSONArray jsonCategories = SendManCategories.toJson(categories);
         JSONObject categoriesBody = new JSONObject();
