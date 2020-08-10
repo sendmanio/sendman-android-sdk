@@ -1,7 +1,6 @@
 package io.sendman.sendman.views;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,26 +18,29 @@ import io.sendman.sendman.models.SendManSDKEvent;
 
 public class SendManNotificationsView extends FrameLayout {
 
+    private SendManColors sendManColors;
+
     private ArrayList<SendManCategory> allCategories;
 
     public SendManNotificationsView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        initView();
+        initView(attrs, defStyle);
     }
 
     public SendManNotificationsView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initView();
+        initView(attrs, 0);
     }
 
     public SendManNotificationsView(Context context) {
         super(context);
-        initView();
+        initView(null, 0);
     }
 
-    private void initView() {
+    private void initView(AttributeSet attrs, int defStyle) {
         inflate(getContext(), R.layout.sendman_notifications_view, this);
-        findViewById(R.id.notificationsView).setBackgroundColor(Color.parseColor("#F0F0F6"));
+        this.sendManColors = new SendManColors(getContext(), attrs, defStyle);
+        findViewById(R.id.notificationsView).setBackgroundColor(this.sendManColors.getBackgroundColor());
     }
 
     @Override
@@ -90,7 +92,7 @@ public class SendManNotificationsView extends FrameLayout {
             final Context context = SendManNotificationsView.this.getContext();
             final SendManNotificationGroup item;
             item = (SendManNotificationGroup) LayoutInflater.from(context).inflate(R.layout.sendman_notification_group, null);
-            item.setup(category);
+            item.setup(category, SendManNotificationsView.this.sendManColors);
             return item;
         }
 

@@ -1,0 +1,13 @@
+<resources>
+    <declare-styleable name="SendManNotificationsView">
+        <attr name="backgroundColor" format="color" />
+        <attr name="switchOnThumbColor" format="color" />
+        <attr name="switchOffThumbColor" format="color" />
+        <attr name="switchOnTrackColor" format="color" />
+        <attr name="switchOffTrackColor" format="color" />
+        <attr name="rowBackgroundColor" format="color" />
+        <attr name="titleColor" format="color" />
+        <attr name="descriptionColor" format="color" />
+        <attr name="textColor" format="color" />
+    </declare-styleable>
+</resources>

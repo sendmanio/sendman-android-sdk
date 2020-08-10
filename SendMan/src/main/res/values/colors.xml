@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="sendManNotificationsBackgroundColor">#F0F0F6</color>
+    <color name="send_man_notification_background_color">#F0F0F6</color>
+    <color name="send_man_switch_default_on_color">#018786</color>
+    <color name="send_man_switch_default_thumb_off_color">#eeeeee</color>
+    <color name="send_man_switch_default_track_off_color">#333333</color>
 </resources>

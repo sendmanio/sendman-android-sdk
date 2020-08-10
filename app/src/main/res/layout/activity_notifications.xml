@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:sendman="http://schemas.android.com/apk/res-auto"
     tools:context=".activities.NotificationsActivity">
 
     <io.sendman.sendman.views.SendManNotificationsView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary"
+        sendman:switchOnThumbColor="@color/colorPrimary"
+        sendman:switchOnTrackColor="@color/colorPrimary"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

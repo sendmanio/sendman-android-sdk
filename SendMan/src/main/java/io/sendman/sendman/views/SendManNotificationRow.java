@@ -1,12 +1,9 @@
 package io.sendman.sendman.views;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.AttributeSet;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.RadioGroup;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import io.sendman.sendman.R;
@@ -15,6 +12,7 @@ import io.sendman.sendman.models.SendManCategory;
 import io.sendman.sendman.models.SendManSDKEvent;
 
 public class SendManNotificationRow extends LinearLayout {
+
     public SendManNotificationRow(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
@@ -27,22 +25,27 @@ public class SendManNotificationRow extends LinearLayout {
         super(context);
     }
 
-    public void setup(final SendManCategory category) {
-        this.setBackgroundColor(Color.WHITE);
+    public void setup(final SendManCategory category, SendManColors sendManColors) {
+        this.setBackgroundColor(sendManColors.getRowBackgroundColor());
+
         if (category.getName() != null && category.getName().length() > 0) {
             TextView nameTextView = findViewById(R.id.subCategoryName);
             nameTextView.setText(category.getName());
+            nameTextView.setTextColor(sendManColors.getTextColor());
             nameTextView.setVisibility(VISIBLE);
-            nameTextView.setTextColor(Color.BLACK);
 
         }
         if (category.getDescription() != null && category.getDescription().length() > 0) {
             TextView descriptionTextView = findViewById(R.id.subCategoryDescription);
             descriptionTextView.setText(category.getDescription());
+            descriptionTextView.setTextColor(sendManColors.getDescriptionColor());
             descriptionTextView.setVisibility(VISIBLE);
         }
 
-        Switch valueSwitch = findViewById(R.id.simpleSwitch);
+        SendManSwitch valueSwitch = findViewById(R.id.simpleSwitch);
+        valueSwitch.setSendManColors(sendManColors);
+        valueSwitch.setSwitchColors(valueSwitch, category.getValue());
+
         valueSwitch.setChecked(category.getValue());
         valueSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -51,7 +54,6 @@ public class SendManNotificationRow extends LinearLayout {
                 category.setValue(isChecked);
             }
         });
-
-        findViewById(R.id.subCategoryDivider).setBackgroundColor(Color.parseColor("#F0F0F6"));
+        findViewById(R.id.subCategoryDivider).setBackgroundColor(sendManColors.getBackgroundColor());
     }
 }
