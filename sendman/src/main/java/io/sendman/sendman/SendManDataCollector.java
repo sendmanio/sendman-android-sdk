@@ -155,18 +155,3 @@ public class SendManDataCollector {
         });
     }
 }
-
-
-//        + (NSString *)getRegistrationStateFromStatus:(UNAuthorizationStatus)status {
-//        switch (status) {
-//        case UNAuthorizationStatusAuthorized:
-//        return @"On";
-//        case UNAuthorizationStatusNotDetermined:
-//        return @"Not requested";
-//        case UNAuthorizationStatusDenied:
-//        return @"Off";
-//default:
-//        return @"Uknknown";
-//        }
-//        }
-//
