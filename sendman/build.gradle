@@ -1,4 +1,36 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+ext {
+    publishedGroupId = 'io.sendman.sdk'
+    artifact = 'sendman'
+    libraryVersion = '0.0.1'
+
+    bintrayRepo = 'maven'
+    bintrayName = "$publishedGroupId:$artifact"
+
+    libraryName = 'SendMan Android SDK'
+    libraryDescription = 'An SDK which uses SendMan to manage and track push notifications.'
+
+    siteUrl = 'https://github.com/sendmanio/sendman-android-sdk'
+    gitUrl = 'https://github.com/sendmanio/sendman-android-sdk.git'
+
+    developerId = 'sendman'
+    developerName = 'SendMan'
+    developerEmail = 'hello@sendman.io'
+
+    licenseName = 'MIT License'
+    licenseUrl = 'https://opensource.org/licenses/MIT'
+    allLicenses = ["MIT"]
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+    bintrayUsername = properties.getProperty('BINTRAY_USERNAME')
+    bintrayUserOrg = properties.getProperty('BINTRAY_ORG')
+    bintrayApiKey = properties.getProperty('BINTRAY_API_KEY')
+}
 
 android {
     compileSdkVersion 28
@@ -40,3 +72,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
+
+apply from: 'bintray.script'
