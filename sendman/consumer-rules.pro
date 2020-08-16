@@ -12,3 +12,19 @@
 -keepclassmembers,allowobfuscation class * {
   @com.google.gson.annotations.SerializedName <fields>;
 }
+
+# For androix.lifecycle to function
+-keepclassmembers class * {
+  @androidx.lifecycle.OnLifecycleEvent *;
+}
+
+-keepclassmembers class * implements androidx.lifecycle.LifecycleObserver {
+    <init>(...);
+}
+-keep class * implements androidx.lifecycle.LifecycleObserver {
+    <init>(...);
+}
+
+-keepclassmembers class androidx.lifecycle.** { *; }
+-keep class androidx.lifecycle.** { *; }
+-dontwarn androidx.lifecycle.**
