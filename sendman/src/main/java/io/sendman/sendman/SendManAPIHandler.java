@@ -2,16 +2,15 @@ package io.sendman.sendman;
 
 import com.google.gson.Gson;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import androidx.annotation.NonNull;
 import io.sendman.sendman.models.SendManCategories;
 import io.sendman.sendman.models.SendManCategory;
 import io.sendman.sendman.models.SendManData;
@@ -40,12 +39,12 @@ public class SendManAPIHandler {
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 callback.onDataSendError();
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull final Response response) {
+            public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 if (!response.isSuccessful()) {
                     callback.onDataSendError();
                 } else {
@@ -65,14 +64,14 @@ public class SendManAPIHandler {
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (callback != null) {
                     System.out.println("Failed to get categories");
                 }
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull final Response response) {
+            public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 if (!response.isSuccessful()) {
                     if (callback != null) {
                         System.out.println("Failed to get categories");
@@ -112,12 +111,12 @@ public class SendManAPIHandler {
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 System.out.println("Failed to update categories");
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull final Response response) {
+            public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 if (!response.isSuccessful()) {
                     System.out.println("Failed to update categories");
                 } else {
@@ -153,7 +152,7 @@ public class SendManAPIHandler {
             this.credentials = Credentials.basic(user, password);
         }
 
-        @NotNull
+        @NonNull
         @Override
         public Response intercept(Chain chain) throws IOException {
             Request request = chain.request();

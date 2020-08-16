@@ -3,10 +3,10 @@ package io.sendman.sendman.models;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -89,7 +89,7 @@ public class SendManMessageMetadata {
 		return fromJson(new JSONObject(data));
 	}
 
-	public static SendManMessageMetadata fromIntent(@NotNull Intent intent, String packageName) {
+	public static SendManMessageMetadata fromIntent(@NonNull Intent intent, String packageName) {
 		Bundle extras = intent.getExtras();
 
 		if (extras == null) {
