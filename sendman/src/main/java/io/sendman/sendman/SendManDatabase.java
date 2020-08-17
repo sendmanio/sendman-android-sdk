@@ -8,7 +8,6 @@ import java.util.Map;
 public class SendManDatabase {
 
 	private static final String SENDMAN_STORAGE = "sendman-storage";
-	private static final String NOTIFICATION_ENABLED_KEY = "notification-registration-state";
 
 	/** --- Data Members --- */
 
@@ -18,16 +17,6 @@ public class SendManDatabase {
 
 	public SendManDatabase(Context context) {
 		this.context = context;
-	}
-
-	/** --- Logical CRUD operations --- */
-
-	public String getNotificationRegistrationState() {
-		return getString(SENDMAN_STORAGE, NOTIFICATION_ENABLED_KEY, "Unset");
-	}
-
-	public void setNotificationRegistrationState(String notificationRegistrationState) {
-		putString(SENDMAN_STORAGE, NOTIFICATION_ENABLED_KEY, notificationRegistrationState, true);
 	}
 
 	/** --- Storage Helpers --- */

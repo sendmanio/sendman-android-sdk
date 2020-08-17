@@ -35,7 +35,6 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 
 	private String fcmToken;
 	private Context applicationContext;
-	private SendManDatabase sendManDatabase;
 	private boolean inForeground;
 	private boolean isLaunch = true;
 	private SendManMessageMetadata latestUnprocessedMessageMetadata;
@@ -50,7 +49,6 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 
 	public void onCreate(final Context context) {
 		applicationContext = context.getApplicationContext();
-		sendManDatabase = new SendManDatabase(applicationContext);
 
 		FirebaseInstanceId.getInstance().getInstanceId()
 				.addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
@@ -134,16 +132,6 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 			foregroundEvent.setAppState("Background");
 		}
 		SendManDataCollector.addSdkEvent(foregroundEvent);
-
-		String previousNotificationRegistrationState = sendManDatabase.getNotificationRegistrationState();
-		String currentNotificationRegistrationState = this.getNotificationRegistrationState();
-
-		if (!previousNotificationRegistrationState.equals(currentNotificationRegistrationState)) {
-			SendManSDKEvent registrationStatusEvent = new SendManSDKEvent("Notification Registration State Updated", currentNotificationRegistrationState);
-			sendManDatabase.setNotificationRegistrationState(currentNotificationRegistrationState);
-			SendManDataCollector.addSdkEvent(registrationStatusEvent);
-			SendManDataCollector.setSdkProperties(Collections.singletonMap("SMNotificationsRegistrationState", currentNotificationRegistrationState));
-		}
 
 		latestUnprocessedMessageMetadata = null;
 		isLaunch = false;
