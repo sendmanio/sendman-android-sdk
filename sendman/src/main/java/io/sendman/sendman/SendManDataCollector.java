@@ -97,6 +97,9 @@ public class SendManDataCollector {
     }
 
     private void sendData(Boolean persistSession) {
+        if (persistSession && !SendManLifecycleHandler.getInstance().isInForeground()) {
+            return;
+        }
         if (SendMan.getConfig() == null || this.sessionId == null || (!persistSession && this.customProperties.isEmpty() && this.sdkProperties.isEmpty() && this.customEvents.isEmpty() && this.sdkEvents.isEmpty())) {
             return;
         }
