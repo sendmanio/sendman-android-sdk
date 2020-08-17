@@ -5,7 +5,6 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +13,8 @@ import io.sendman.sendman.models.SendManCategory;
 
 public class SendMan {
 
-    private final static String SM_FCM_TOKEN = "SMFCMToken";
+    private final static String SM_TOKEN = "SMToken";
+    private final static String SM_TOKEN_TYPE = "SMTokenType";
 
     private static SendMan instance = null;
 
@@ -53,7 +53,10 @@ public class SendMan {
     }
 
     public static void setFCMToken(@NonNull String token) {
-        SendManDataCollector.setSdkProperties(Collections.singletonMap(SM_FCM_TOKEN, token));
+        Map <String, String> properties = new HashMap<>();
+        properties.put(SM_TOKEN, token);
+        properties.put(SM_TOKEN_TYPE, "fcm");
+        SendManDataCollector.setSdkProperties(properties);
     }
 
     public static void setUserCategories(List<SendManCategory> categories) {
