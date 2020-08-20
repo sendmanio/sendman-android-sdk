@@ -65,6 +65,8 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 		String title = metadata.getTitle();
 		String messageBody = metadata.getBody();
 
+		createNotificationChannel(metadata);
+
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, metadata.getCategoryId())
 				.setSmallIcon(android.R.drawable.ic_popup_reminder) // TODO: make this customizable
 				.setContentTitle(title)
@@ -78,8 +80,6 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 
 		// notificationId is a unique int for each notification that you must define
 		notificationManager.notify(metadata.getActivityId(), getNotificationIdForActivityId(metadata.getActivityId()), mBuilder.build());
-
-		createNotificationChannel(metadata);
 	}
 
 	private void createNotificationChannel(SendManMessageMetadata metadata) {
