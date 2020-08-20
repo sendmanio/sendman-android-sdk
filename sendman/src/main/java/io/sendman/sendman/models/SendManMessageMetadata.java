@@ -56,7 +56,7 @@ public class SendManMessageMetadata {
 	}
 
 	public String getCategoryName() {
-		return categoryName != null ? categoryName : "Uncategorized";
+		return categoryName != null ? categoryName : "Default";
 	}
 
 	public String getCategoryId() {
@@ -74,9 +74,9 @@ public class SendManMessageMetadata {
 			metadata.body = messageMetadata.getString("body");
 			metadata.activityId = messageMetadata.getString("activityId");
 			metadata.messageId = messageMetadata.getString("messageId");
-			metadata.categoryDescription = messageMetadata.optString("categoryDescription");
-			metadata.categoryName = messageMetadata.optString("categoryName");
-			metadata.categoryId = messageMetadata.optString("categoryId");
+			metadata.categoryDescription = messageMetadata.optString("categoryDescription", null);
+			metadata.categoryName = messageMetadata.optString("categoryName", null);
+			metadata.categoryId = messageMetadata.optString("categoryId", null);
 			metadata.deserializationTimestamp = System.currentTimeMillis();
 		} catch (JSONException e) {
 			Log.w(TAG, "Cannot construct a metadata object when activityId or messageId are null.", e);
