@@ -72,6 +72,7 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 				.setContentTitle(title)
 				.setContentText(messageBody)
 				.setPriority(NotificationCompat.PRIORITY_MAX) // TODO: priority
+				.setDefaults(NotificationCompat.DEFAULT_LIGHTS | NotificationCompat.DEFAULT_VIBRATE)
 				.setContentIntent(createIntentForReceiver(SendManNotificationClickedReceiver.class, metadata))
 				.setDeleteIntent(createIntentForReceiver(SendManNotificationDismissedReceiver.class, metadata))
 				.setAutoCancel(true);
