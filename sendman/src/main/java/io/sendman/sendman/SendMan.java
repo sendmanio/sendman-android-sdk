@@ -21,7 +21,7 @@ public class SendMan {
     private SendManConfig config;
     private String smUserId;
     private List<SendManCategory> categories;
-
+    private Context applicationContext;
 
     public synchronized static SendMan getInstance() {
         if (instance == null) {
@@ -46,7 +46,7 @@ public class SendMan {
         SendMan.getInstance().config = config;
     }
 
-    public static void setUserId(String smUserId) { //TODO
+    public static void setUserId(String smUserId) {
         SendMan.getInstance().smUserId = smUserId;
         SendManDataCollector.getInstance().startSession();
         SendManAPIHandler.getCategories(null);
@@ -83,8 +83,13 @@ public class SendMan {
         SendMan.addGenericUserEvent(eventName, value);
     }
 
-    public static void onCreate(final Context context) {
-        SendManLifecycleHandler.getInstance().onCreate(context);
+    public void onCreate(final Context context) {
+        applicationContext = context;
+        SendManLifecycleHandler.getInstance().onCreate();
+    }
+
+    Context getApplicationContext() {
+        return this.applicationContext;
     }
 
     private static void addGenericUserEvent(String eventName, Object value) {

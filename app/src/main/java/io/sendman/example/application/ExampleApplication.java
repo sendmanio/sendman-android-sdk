@@ -14,7 +14,7 @@ public class ExampleApplication extends Application {
         super.onCreate();
         instance = this;
 
-        SendMan.onCreate(this);
+        SendMan.getInstance().onCreate(this);
     }
 
     /** --- Static Methods --- */

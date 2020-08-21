@@ -12,4 +12,12 @@ public class SendManSession {
         this.start = start;
         this.end = end;
     }
+
+    public long getEnd() {
+        return end;
+    }
+
+    public void setEnd(long end) {
+        this.end = end;
+    }
 }

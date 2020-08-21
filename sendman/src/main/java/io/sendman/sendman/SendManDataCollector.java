@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -13,14 +12,10 @@ import io.sendman.sendman.models.SendManCustomEvent;
 import io.sendman.sendman.models.SendManData;
 import io.sendman.sendman.models.SendManPropertyValue;
 import io.sendman.sendman.models.SendManSDKEvent;
-import io.sendman.sendman.models.SendManSession;
 
 public class SendManDataCollector {
 
     private static SendManDataCollector instance = null;
-
-    private UUID sessionId;
-    private long sessionIdStartTimestamp;
 
     private Map<String, SendManPropertyValue> customProperties;
     private Map<String, SendManPropertyValue> sdkProperties;
@@ -56,8 +51,7 @@ public class SendManDataCollector {
 
     public void startSession() {
         SendManDataCollector collector = SendManDataCollector.getInstance();
-        collector.sessionId = UUID.randomUUID();
-        collector.sessionIdStartTimestamp = new Date().getTime();
+        SendManSessionManager.getInstance().getOrCreateSession();
         SendManDataCollector.addPropertiesToMap(SendManDataEnricher.getUserEnrichedData(), collector.sdkProperties);
     }
 
@@ -100,14 +94,14 @@ public class SendManDataCollector {
         if (persistSession && !SendManLifecycleHandler.getInstance().isInForeground()) {
             return;
         }
-        if (SendMan.getConfig() == null || this.sessionId == null || (!persistSession && this.customProperties.isEmpty() && this.sdkProperties.isEmpty() && this.customEvents.isEmpty() && this.sdkEvents.isEmpty())) {
+        if (SendMan.getConfig() == null || SendMan.getUserId() == null || (!persistSession && this.customProperties.isEmpty() && this.sdkProperties.isEmpty() && this.customEvents.isEmpty() && this.sdkEvents.isEmpty())) {
             return;
         }
         System.out.println("Preparing to send data");
 
         final SendManData data = new SendManData();
         data.setExternalUserId(SendMan.getUserId());
-        data.setCurrentSession(new SendManSession(this.sessionId, this.sessionIdStartTimestamp, new Date().getTime()));
+        data.setCurrentSession(SendManSessionManager.getInstance().getOrCreateSession());
 
         final Map<String, SendManPropertyValue> currentCustomProperties = this.customProperties;
         data.setCustomProperties(this.customProperties);

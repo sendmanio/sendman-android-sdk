@@ -33,8 +33,6 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 	private static final String TAG = SendManLifecycleHandler.class.getSimpleName();
 	private static SendManLifecycleHandler instance = null;
 
-	private String fcmToken;
-	private Context applicationContext;
 	private boolean inForeground;
 	private boolean isLaunch = true;
 	private SendManMessageMetadata latestUnprocessedMessageMetadata;
@@ -47,9 +45,7 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 		return instance;
 	}
 
-	public void onCreate(final Context context) {
-		applicationContext = context.getApplicationContext();
-
+	public void onCreate() {
 		FirebaseInstanceId.getInstance().getInstanceId()
 				.addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
 					@Override
@@ -145,6 +141,7 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 	/* --- Private Methods --- */
 
 	private Map<String, Boolean> getChannelConfiguration() {
+		Context applicationContext = SendMan.getInstance().getApplicationContext();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			NotificationManager manager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
 			if (!manager.areNotificationsEnabled()) {

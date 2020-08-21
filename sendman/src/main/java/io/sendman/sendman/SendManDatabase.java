@@ -2,12 +2,20 @@ package io.sendman.sendman;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
+import com.google.gson.Gson;
+
+import java.lang.reflect.Type;
 import java.util.Map;
+
+import androidx.annotation.Nullable;
+import io.sendman.sendman.models.SendManSession;
 
 public class SendManDatabase {
 
 	private static final String SENDMAN_STORAGE = "sendman-storage";
+	private static final String SENDMAN_LAST_SESSION_KEY = "sendman-last-session-key";
 
 	/** --- Data Members --- */
 
@@ -17,6 +25,17 @@ public class SendManDatabase {
 
 	public SendManDatabase(Context context) {
 		this.context = context;
+	}
+
+	/** --- Logical storage ---- */
+
+	@Nullable
+	public SendManSession getLastSession() {
+		return this.getObject(SENDMAN_STORAGE, SENDMAN_LAST_SESSION_KEY, SendManSession.class);
+	}
+
+	public void setLastSession(SendManSession session) {
+		this.putObject(SENDMAN_STORAGE, SENDMAN_LAST_SESSION_KEY, session, true);
 	}
 
 	/** --- Storage Helpers --- */
@@ -39,6 +58,22 @@ public class SendManDatabase {
 	protected boolean getBoolean(String storeKey, String key) {
 		SharedPreferences sp = context.getSharedPreferences(storeKey, Context.MODE_PRIVATE);
 		return sp.getBoolean(key, false);
+	}
+
+	protected <T> T getObject(String storageKey, String key, Type type) {
+		String cachedJsonString = getString(storageKey, key, null);
+		if (cachedJsonString == null) {
+			return null;
+		}
+
+		Gson gson = new Gson();
+		try {
+			return gson.fromJson(cachedJsonString, type);
+		} catch (Exception e) {
+			Log.e(getClass().getSimpleName(), "Cannot get object from local storage: " + storageKey + " for key: " + key + " with type: " + type, e);
+		}
+
+		return null;
 	}
 
 	protected boolean putString(String storageKey, String key, String value, boolean waitForCommit) {
@@ -91,6 +126,19 @@ public class SendManDatabase {
 			editor.apply();
 		}
 		return success;
+	}
+
+	protected boolean putObject(String storageKey, String key, Object value, boolean waitForCommit) {
+		Gson gson = new Gson();
+
+		try {
+			String objectJsonString = gson.toJson(value);
+			return putString(storageKey, key, objectJsonString, waitForCommit);
+		} catch (Exception e) {
+			Log.e(getClass().getSimpleName(), "Cannot get object from local storage: " + storageKey + " for key: " + key + " with value: " + value, e);
+		}
+
+		return false;
 	}
 
 	protected void remove(String storageKey, String key) {
