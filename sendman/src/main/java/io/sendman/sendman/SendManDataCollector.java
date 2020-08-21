@@ -1,5 +1,7 @@
 package io.sendman.sendman;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import io.sendman.sendman.models.SendManSDKEvent;
 
 public class SendManDataCollector {
 
+    private static final String TAG = SendManDataCollector.class.getSimpleName();
     private static SendManDataCollector instance = null;
 
     private Map<String, SendManPropertyValue> customProperties;
@@ -55,19 +58,28 @@ public class SendManDataCollector {
         SendManDataCollector.addPropertiesToMap(SendManDataEnricher.getUserEnrichedData(), collector.sdkProperties);
     }
 
-    private static void addPropertiesToMap(Map<String, String> newProperties, Map<String, SendManPropertyValue> currProperties) {
+    private static void addPropertiesToMap(Map<String, ?> newProperties, Map<String, SendManPropertyValue> currProperties) {
         long now = new Date().getTime();
-        for(Map.Entry<String, String> property : newProperties.entrySet()) {
-            currProperties.put(property.getKey(), new SendManPropertyValue(property.getValue(), now));
+        for (Map.Entry<String, ?> property : newProperties.entrySet()) {
+            if (property.getValue() instanceof String) {
+                currProperties.put(property.getKey(), new SendManPropertyValue((String) property.getValue(), now));
+            } else if (property.getValue() instanceof Number) {
+                currProperties.put(property.getKey(), new SendManPropertyValue((Number) property.getValue(), now));
+            } else if (property.getValue() instanceof Boolean) {
+                currProperties.put(property.getKey(), new SendManPropertyValue((Boolean) property.getValue(), now));
+            } else {
+                String message = "Discarding property \"" + property.getKey() + "\" due to unsupported type. Supported types are Number, Boolean and String. Provided type: " + property.getValue().getClass().getSimpleName();
+                Log.e(TAG, message);
+            }
         }
     }
 
-    public static void setUserProperties(Map<String, String> properties) {
-        SendManDataCollector.addPropertiesToMap(properties, SendManDataCollector.getInstance().customProperties);
+    public static void setUserProperties(Map<String, ?> properties) {
+        addPropertiesToMap(properties, SendManDataCollector.getInstance().customProperties);
     }
 
-    public static void setSdkProperties(Map<String, String> properties) {
-        SendManDataCollector.addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties);
+    public static void setSdkProperties(Map<String, ?> properties) {
+        addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties);
     }
 
     public static void addUserEvents(Map<String, Object> events) {

@@ -63,7 +63,7 @@ public class SendMan {
         SendMan.getInstance().categories = categories;
     }
 
-    public static void setUserProperties(Map<String, String> properties) {
+    public static void setUserProperties(Map<String, ?> properties) {
         SendManDataCollector.setUserProperties(properties);
     }
 
