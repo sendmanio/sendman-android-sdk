@@ -83,13 +83,13 @@ public class SendMan {
         SendMan.addGenericUserEvent(eventName, value);
     }
 
-    public void onCreate(final Context context) {
-        applicationContext = context;
+    public static void onCreate(final Context context) {
+        SendMan.getInstance().applicationContext = context;
         SendManLifecycleHandler.getInstance().onCreate();
     }
 
-    Context getApplicationContext() {
-        return this.applicationContext;
+    static Context getApplicationContext() {
+        return SendMan.getInstance().applicationContext;
     }
 
     private static void addGenericUserEvent(String eventName, Object value) {

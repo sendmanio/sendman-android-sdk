@@ -19,7 +19,7 @@ public class SendManSessionManager {
 	}
 
 	public SendManSession getOrCreateSession() {
-		SendManDatabase storage = new SendManDatabase(SendMan.getInstance().getApplicationContext());
+		SendManDatabase storage = new SendManDatabase(SendMan.getApplicationContext());
 		SendManSession session = storage.getLastSession();
 		if (session == null || new Date().getTime() - session.getEnd() > MAX_SESSION_LENGTH_MS) {
 			session = createNewSession();

@@ -141,7 +141,7 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 	/* --- Private Methods --- */
 
 	private Map<String, Boolean> getChannelConfiguration() {
-		Context applicationContext = SendMan.getInstance().getApplicationContext();
+		Context applicationContext = SendMan.getApplicationContext();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			NotificationManager manager = (NotificationManager) applicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
 			if (!manager.areNotificationsEnabled()) {
