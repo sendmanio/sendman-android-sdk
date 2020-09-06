@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.sendman.sendman.models.SendManCustomEvent;
 import io.sendman.sendman.models.SendManData;
 import io.sendman.sendman.models.SendManPropertyValue;
 import io.sendman.sendman.models.SendManSDKEvent;
@@ -22,7 +21,6 @@ public class SendManDataCollector {
 
     private Map<String, SendManPropertyValue> customProperties;
     private Map<String, SendManPropertyValue> sdkProperties;
-    private ArrayList<SendManCustomEvent> customEvents;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
     public synchronized static SendManDataCollector getInstance() {
@@ -35,7 +33,6 @@ public class SendManDataCollector {
     public SendManDataCollector() {
         this.customProperties = new HashMap<String, SendManPropertyValue>();
         this.sdkProperties = new HashMap<String, SendManPropertyValue>();
-        this.customEvents = new ArrayList<SendManCustomEvent>();
         this.sdkEvents = new ArrayList<SendManSDKEvent>();
         this.pollForNewData(2, false);
         this.pollForNewData(60, true);
@@ -82,14 +79,6 @@ public class SendManDataCollector {
         addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties);
     }
 
-    public static void addUserEvents(Map<String, Object> events) {
-        SendManDataCollector collector = SendManDataCollector.getInstance();
-        long now = new Date().getTime();
-        for(Map.Entry<String, Object> event : events.entrySet()) {
-            collector.customEvents.add(new SendManCustomEvent(event.getKey(), event.getValue(), now));
-        }
-    }
-
     public static void addSdkEvent(SendManSDKEvent event) {
         SendManDataCollector collector = SendManDataCollector.getInstance();
         long now = new Date().getTime();
@@ -106,7 +95,7 @@ public class SendManDataCollector {
         if (persistSession && !SendManLifecycleHandler.getInstance().isInForeground()) {
             return;
         }
-        if (SendMan.getConfig() == null || SendMan.getUserId() == null || (!persistSession && this.customProperties.isEmpty() && this.sdkProperties.isEmpty() && this.customEvents.isEmpty() && this.sdkEvents.isEmpty())) {
+        if (SendMan.getConfig() == null || SendMan.getUserId() == null || (!persistSession && this.customProperties.isEmpty() && this.sdkProperties.isEmpty() && this.sdkEvents.isEmpty())) {
             return;
         }
         System.out.println("Preparing to send data");
@@ -122,10 +111,6 @@ public class SendManDataCollector {
         final Map<String, SendManPropertyValue> currentSDKProperties = this.sdkProperties;
         data.setSdkProperties(this.sdkProperties);
         this.sdkProperties = new HashMap<>();
-
-        final ArrayList<SendManCustomEvent> currentCustomEvents = this.customEvents;
-        data.setCustomEvents(this.customEvents);
-        this.customEvents = new ArrayList<>();
 
         final ArrayList<SendManSDKEvent> currentSDKEvents = this.sdkEvents;
         data.setSdkEvents(this.sdkEvents);
@@ -146,11 +131,6 @@ public class SendManDataCollector {
                         currentSDKProperties.put(property.getKey(), property.getValue());
                     }
                     SendManDataCollector.this.sdkProperties = currentSDKProperties;
-                }
-
-                if (SendManDataCollector.this.customEvents != null) {
-                    currentCustomEvents.addAll(SendManDataCollector.this.customEvents);
-                    SendManDataCollector.this.customEvents = currentCustomEvents;
                 }
 
                 if (SendManDataCollector.this.sdkEvents != null) {

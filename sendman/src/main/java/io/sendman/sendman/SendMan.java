@@ -67,22 +67,6 @@ public class SendMan {
         SendManDataCollector.setUserProperties(properties);
     }
 
-    public static void addUserEvent(String eventName) {
-        SendMan.addGenericUserEvent(eventName, null);
-    }
-
-    public static void addUserEvent(String eventName, String value) {
-        SendMan.addGenericUserEvent(eventName, value);
-    }
-
-    public static void addUserEvent(String eventName, int value) {
-        SendMan.addGenericUserEvent(eventName, value);
-    }
-
-    public static void addUserEvent(String eventName, Boolean value) {
-        SendMan.addGenericUserEvent(eventName, value);
-    }
-
     public static void onCreate(final Context context) {
         SendMan.getInstance().applicationContext = context;
         SendManLifecycleHandler.getInstance().onCreate();
@@ -90,11 +74,5 @@ public class SendMan {
 
     static Context getApplicationContext() {
         return SendMan.getInstance().applicationContext;
-    }
-
-    private static void addGenericUserEvent(String eventName, Object value) {
-        HashMap<String, Object> events = new HashMap<>();
-        events.put(eventName, value);
-        SendManDataCollector.addUserEvents(events);
     }
 }

@@ -9,7 +9,6 @@ public class SendManData {
     private SendManSession currentSession;
     private Map<String, SendManPropertyValue> customProperties;
     private Map<String, SendManPropertyValue> sdkProperties;
-    private ArrayList<SendManCustomEvent> customEvents;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
     public void setUserId(String userId) {
@@ -30,10 +29,6 @@ public class SendManData {
 
     public void setSdkProperties(Map<String, SendManPropertyValue> sdkProperties) {
         this.sdkProperties = sdkProperties;
-    }
-
-    public void setCustomEvents(ArrayList<SendManCustomEvent> customEvents) {
-        this.customEvents = customEvents;
     }
 
     public void setSdkEvents(ArrayList<SendManSDKEvent> sdkEvents) {
