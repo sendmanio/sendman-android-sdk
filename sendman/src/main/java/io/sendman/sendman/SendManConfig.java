@@ -5,10 +5,9 @@ public class SendManConfig {
     private String appSecret;
     private String serverUrl;
 
-    public SendManConfig(String appKey, String appSecret, String serverUrl) {
+    public SendManConfig(String appKey, String appSecret) {
         this.appKey = appKey;
         this.appSecret = appSecret;
-        this.serverUrl = serverUrl;
     }
 
     String getAppKey() {
@@ -21,5 +20,9 @@ public class SendManConfig {
 
     String getServerUrl() {
         return serverUrl;
+    }
+
+    public void setServerUrl(String serverUrl) {
+        this.serverUrl = serverUrl;
     }
 }

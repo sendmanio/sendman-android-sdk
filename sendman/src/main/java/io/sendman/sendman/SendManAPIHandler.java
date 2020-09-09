@@ -129,7 +129,7 @@ public class SendManAPIHandler {
 
     private static String getUrlFromPath(String path) {
         SendManConfig config = SendMan.getConfig();
-        String serverUrl = config.getServerUrl() != null ? config.getServerUrl() : "http://localhost:4200";
+        String serverUrl = config.getServerUrl() != null ? config.getServerUrl() : "https://api.sendman.io/app-sdk";
         return serverUrl + '/' + path;
     }
 

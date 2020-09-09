@@ -16,7 +16,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SendMan.setAppConfig(new SendManConfig("81b2b9a9213a2cd0d664ad6673d84b5156121166", "2728a0301adda50dce376e6eedc8de5c3a8af82a", "http://192.168.1.100:4200"));
+        SendManConfig config = new SendManConfig("81b2b9a9213a2cd0d664ad6673d84b5156121166", "2728a0301adda50dce376e6eedc8de5c3a8af82a");
+        config.setServerUrl("http://192.168.1.100:4200");
+        SendMan.setAppConfig(config);
         SendMan.setUserId("1234");
 
         HashMap<String, String> userProperties = new HashMap<>();
