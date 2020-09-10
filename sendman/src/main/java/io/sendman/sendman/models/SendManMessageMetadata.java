@@ -72,11 +72,11 @@ public class SendManMessageMetadata {
 		try {
 			metadata.title = messageMetadata.getString("title");
 			metadata.body = messageMetadata.getString("body");
-			metadata.activityId = messageMetadata.getString("activityId");
-			metadata.messageId = messageMetadata.getString("messageId");
-			metadata.categoryDescription = messageMetadata.optString("categoryDescription", null);
-			metadata.categoryName = messageMetadata.optString("categoryName", null);
-			metadata.categoryId = messageMetadata.optString("categoryId", null);
+			metadata.activityId = messageMetadata.getString("smActivityId");
+			metadata.messageId = messageMetadata.getString("smMessageId");
+			metadata.categoryDescription = messageMetadata.optString("smCategoryDescription", null);
+			metadata.categoryName = messageMetadata.optString("smCategoryName", null);
+			metadata.categoryId = messageMetadata.optString("smCategoryId", null);
 			metadata.deserializationTimestamp = System.currentTimeMillis();
 		} catch (JSONException e) {
 			Log.w(TAG, "Cannot construct a metadata object when activityId or messageId are null.", e);
