@@ -20,7 +20,9 @@ public class SendManDataCollector {
     private static SendManDataCollector instance = null;
 
     private Map<String, SendManPropertyValue> customProperties;
+    private Map<String, Object> customPropertiesCache;
     private Map<String, SendManPropertyValue> sdkProperties;
+    private Map<String, Object> sdkPropertiesCache;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
     public synchronized static SendManDataCollector getInstance() {
@@ -31,9 +33,11 @@ public class SendManDataCollector {
     }
 
     public SendManDataCollector() {
-        this.customProperties = new HashMap<String, SendManPropertyValue>();
-        this.sdkProperties = new HashMap<String, SendManPropertyValue>();
-        this.sdkEvents = new ArrayList<SendManSDKEvent>();
+        this.customProperties = new HashMap<>();
+        this.customPropertiesCache = new HashMap<>();
+        this.sdkProperties = new HashMap<>();
+        this.sdkPropertiesCache = new HashMap<>();
+        this.sdkEvents = new ArrayList<>();
         this.pollForNewData(2, false);
         this.pollForNewData(60, true);
     }
@@ -52,31 +56,39 @@ public class SendManDataCollector {
     public void startSession() {
         SendManDataCollector collector = SendManDataCollector.getInstance();
         SendManSessionManager.getInstance().getOrCreateSession();
-        SendManDataCollector.addPropertiesToMap(SendManDataEnricher.getUserEnrichedData(), collector.sdkProperties);
+        SendManDataCollector.addPropertiesToMap(SendManDataEnricher.getUserEnrichedData(), collector.sdkProperties, collector.sdkPropertiesCache);
     }
 
-    private static void addPropertiesToMap(Map<String, ?> newProperties, Map<String, SendManPropertyValue> currProperties) {
+    private static void addPropertiesToMap(Map<String, ?> newProperties, Map<String, SendManPropertyValue> currProperties, Map<String, Object> propertiesCache) {
         long now = new Date().getTime();
         for (Map.Entry<String, ?> property : newProperties.entrySet()) {
-            if (property.getValue() instanceof String) {
-                currProperties.put(property.getKey(), new SendManPropertyValue((String) property.getValue(), now));
-            } else if (property.getValue() instanceof Number) {
-                currProperties.put(property.getKey(), new SendManPropertyValue((Number) property.getValue(), now));
-            } else if (property.getValue() instanceof Boolean) {
-                currProperties.put(property.getKey(), new SendManPropertyValue((Boolean) property.getValue(), now));
+            String key = property.getKey();
+            Object value = property.getValue();
+            if (value == null) {
+                Log.e(TAG, "Discarding property \"" + key + "\" because it has a null value.");
+            } else if (value.equals(propertiesCache.get(key))) {
+                Log.i(TAG, "Property \"" + key + "\" was already reported with this value, skipping adding it to the properties to report.");
             } else {
-                String message = "Discarding property \"" + property.getKey() + "\" due to unsupported type. Supported types are Number, Boolean and String. Provided type: " + property.getValue().getClass().getSimpleName();
-                Log.e(TAG, message);
+                if (value instanceof String) {
+                    currProperties.put(key, new SendManPropertyValue((String) value, now));
+                } else if (value instanceof Number) {
+                    currProperties.put(key, new SendManPropertyValue((Number) value, now));
+                } else if (value instanceof Boolean) {
+                    currProperties.put(key, new SendManPropertyValue((Boolean) value, now));
+                } else {
+                    Log.e(TAG, "Discarding property \"" + property.getKey() + "\" due to unsupported type. Supported types are Number, Boolean and String. Provided type: " + property.getValue().getClass().getSimpleName());
+                }
+                propertiesCache.put(key, value);
             }
         }
     }
 
     public static void setUserProperties(Map<String, ?> properties) {
-        addPropertiesToMap(properties, SendManDataCollector.getInstance().customProperties);
+        addPropertiesToMap(properties, SendManDataCollector.getInstance().customProperties, SendManDataCollector.getInstance().customPropertiesCache);
     }
 
     public static void setSdkProperties(Map<String, ?> properties) {
-        addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties);
+        addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties, SendManDataCollector.getInstance().sdkPropertiesCache);
     }
 
     public static void addSdkEvent(SendManSDKEvent event) {
