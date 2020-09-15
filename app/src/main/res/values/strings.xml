@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">SendMan-Example</string>
+    <string name="main_cta">Click here</string>
+    <string name="custom_property_value_1">Custom Property: Value 1</string>
+    <string name="custom_property_value_2">Custom Property: Value 2</string>
 </resources>
