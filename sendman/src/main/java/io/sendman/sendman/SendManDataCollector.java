@@ -20,9 +20,7 @@ public class SendManDataCollector {
     private static SendManDataCollector instance = null;
 
     private Map<String, SendManPropertyValue> customProperties;
-    private Map<String, Object> customPropertiesCache;
     private Map<String, SendManPropertyValue> sdkProperties;
-    private Map<String, Object> sdkPropertiesCache;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
     public synchronized static SendManDataCollector getInstance() {
@@ -34,9 +32,7 @@ public class SendManDataCollector {
 
     public SendManDataCollector() {
         this.customProperties = new HashMap<>();
-        this.customPropertiesCache = new HashMap<>();
         this.sdkProperties = new HashMap<>();
-        this.sdkPropertiesCache = new HashMap<>();
         this.sdkEvents = new ArrayList<>();
         this.pollForNewData(2, false);
         this.pollForNewData(60, true);
@@ -56,18 +52,16 @@ public class SendManDataCollector {
     public void startSession() {
         SendManDataCollector collector = SendManDataCollector.getInstance();
         SendManSessionManager.getInstance().getOrCreateSession();
-        SendManDataCollector.addPropertiesToMap(SendManDataEnricher.getUserEnrichedData(), collector.sdkProperties, collector.sdkPropertiesCache);
+        SendManDataCollector.addPropertiesToMap(SendManDataEnricher.getUserEnrichedData(), collector.sdkProperties);
     }
 
-    private static void addPropertiesToMap(Map<String, ?> newProperties, Map<String, SendManPropertyValue> currProperties, Map<String, Object> propertiesCache) {
+    private static void addPropertiesToMap(Map<String, ?> newProperties, Map<String, SendManPropertyValue> currProperties) {
         long now = new Date().getTime();
         for (Map.Entry<String, ?> property : newProperties.entrySet()) {
             String key = property.getKey();
             Object value = property.getValue();
             if (value == null) {
                 Log.e(TAG, "Discarding property \"" + key + "\" because it has a null value.");
-            } else if (value.equals(propertiesCache.get(key))) {
-                Log.i(TAG, "Property \"" + key + "\" was already reported with this value, skipping adding it to the properties to report.");
             } else {
                 if (value instanceof String) {
                     currProperties.put(key, new SendManPropertyValue((String) value, now));
@@ -78,17 +72,16 @@ public class SendManDataCollector {
                 } else {
                     Log.e(TAG, "Discarding property \"" + property.getKey() + "\" due to unsupported type. Supported types are Number, Boolean and String. Provided type: " + property.getValue().getClass().getSimpleName());
                 }
-                propertiesCache.put(key, value);
             }
         }
     }
 
     public static void setUserProperties(Map<String, ?> properties) {
-        addPropertiesToMap(properties, SendManDataCollector.getInstance().customProperties, SendManDataCollector.getInstance().customPropertiesCache);
+        addPropertiesToMap(properties, SendManDataCollector.getInstance().customProperties);
     }
 
     public static void setSdkProperties(Map<String, ?> properties) {
-        addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties, SendManDataCollector.getInstance().sdkPropertiesCache);
+        addPropertiesToMap(properties, SendManDataCollector.getInstance().sdkProperties);
     }
 
     public static void addSdkEvent(SendManSDKEvent event) {
