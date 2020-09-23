@@ -103,7 +103,7 @@ public class SendManDataCollector {
         if (SendMan.getConfig() == null || SendMan.getUserId() == null || (!persistSession && this.customProperties.isEmpty() && this.sdkProperties.isEmpty() && this.sdkEvents.isEmpty())) {
             return;
         }
-        System.out.println("Preparing to send data");
+        Log.d(TAG, "Preparing to submit periodical data to API");
 
         final SendManData data = new SendManData();
 
@@ -159,7 +159,7 @@ public class SendManDataCollector {
                     SendManDataCollector.this.sdkEvents.addAll(currentSDKEvents);
                 }
 
-                System.out.println("failed to set properties");
+                Log.e(TAG, "Error submitting peridical data to API");
             }
 
         });

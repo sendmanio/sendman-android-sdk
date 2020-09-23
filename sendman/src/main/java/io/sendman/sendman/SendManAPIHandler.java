@@ -1,5 +1,7 @@
 package io.sendman.sendman;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -27,6 +29,8 @@ import okhttp3.Response;
 
 public class SendManAPIHandler {
 
+    private static final String TAG = SendManAPIHandler.class.getSimpleName();
+
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     static void sendData(final SendManData data, final APICallback callback) {
@@ -49,7 +53,7 @@ public class SendManAPIHandler {
                     callback.onDataSendError();
                 } else {
                     callback.onDataSendSuccess();
-                    System.out.println("Successfully set properties:" + new Gson().toJson(data));
+                    Log.d(TAG, "Successfully set properties:" + new Gson().toJson(data));
                 }
             }
         });
@@ -67,7 +71,7 @@ public class SendManAPIHandler {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 if (callback != null) {
-                    System.out.println("Failed to get categories");
+                    Log.e(TAG, "Failed to get categories");
                 }
             }
 
@@ -75,7 +79,7 @@ public class SendManAPIHandler {
             public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 if (!response.isSuccessful()) {
                     if (callback != null) {
-                        System.out.println("Failed to get categories");
+                        Log.e(TAG, "Failed to get categories");
                     }
                 } else {
                     try {
@@ -87,7 +91,7 @@ public class SendManAPIHandler {
                         }
                     } catch (JSONException | IOException | NullPointerException e) {
                         if (callback != null) {
-                            System.out.println("Failed to get categories");
+                            Log.e(TAG, "Failed to get categories");
                         }
                     }
                 }
@@ -102,9 +106,8 @@ public class SendManAPIHandler {
         try {
             categoriesBody.put("categories", jsonCategories);
         } catch (JSONException e) {
-            System.out.println("Failed to update categories");
+            Log.e(TAG, "Failed to update categories");
         }
-        System.out.println("@@@@ Hello" + categoriesBody.toString());
         RequestBody body = RequestBody.create(categoriesBody.toString(), JSON);
         Request request = new Request.Builder()
                 .url(SendManAPIHandler.getUrlFromPath("categories/user/" + SendMan.getUserId()))
@@ -113,16 +116,16 @@ public class SendManAPIHandler {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                System.out.println("Failed to update categories");
+                Log.e(TAG, "Failed to update categories");
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 if (!response.isSuccessful()) {
-                    System.out.println("Failed to update categories");
+                    Log.e(TAG, "Failed to update categories");
                 } else {
                     SendManDataCollector.addSdkEvent(new SendManSDKEvent("User categories saved", null));
-                    System.out.println("Successfully updated categories");
+                    Log.d(TAG, "Successfully updated categories");
                 }
             }
         });
