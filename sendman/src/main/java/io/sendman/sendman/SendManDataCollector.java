@@ -13,11 +13,15 @@ import java.util.concurrent.TimeUnit;
 import io.sendman.sendman.models.SendManData;
 import io.sendman.sendman.models.SendManPropertyValue;
 import io.sendman.sendman.models.SendManSDKEvent;
+import okhttp3.Response;
 
 public class SendManDataCollector {
 
     private static final String TAG = SendManDataCollector.class.getSimpleName();
     private static SendManDataCollector instance = null;
+
+    private final ScheduledExecutorService pollingExecutor;
+    private final ScheduledExecutorService persistPollingExecutor;
 
     private Map<String, SendManPropertyValue> customProperties;
     private Map<String, SendManPropertyValue> sdkProperties;
@@ -34,11 +38,11 @@ public class SendManDataCollector {
         this.customProperties = new HashMap<>();
         this.sdkProperties = new HashMap<>();
         this.sdkEvents = new ArrayList<>();
-        this.pollForNewData(2, false);
-        this.pollForNewData(60, true);
+        pollingExecutor = this.pollForNewData(2, false);
+        persistPollingExecutor = this.pollForNewData(60, true);
     }
 
-    private void pollForNewData(int secondsInterval, final Boolean persistSession) {
+    private ScheduledExecutorService pollForNewData(int secondsInterval, final Boolean persistSession) {
         Runnable newDataRunnable = new Runnable() {
             public void run() {
                 SendManDataCollector.getInstance().sendData(persistSession);
@@ -47,6 +51,7 @@ public class SendManDataCollector {
 
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(newDataRunnable, 0, secondsInterval, TimeUnit.SECONDS);
+        return executor;
     }
 
     public void startSession() {
@@ -136,7 +141,8 @@ public class SendManDataCollector {
                 }
             }
             @Override
-            public void onDataSendError() {
+            public void onDataSendError(Response response) {
+
                 if (SendManDataCollector.this.customProperties != null) {
                     for(Map.Entry<String, SendManPropertyValue> property : SendManDataCollector.this.customProperties.entrySet()) {
                         currentCustomProperties.put(property.getKey(), property.getValue());
@@ -159,7 +165,15 @@ public class SendManDataCollector {
                     SendManDataCollector.this.sdkEvents.addAll(currentSDKEvents);
                 }
 
-                Log.e(TAG, "Error submitting peridical data to API");
+                if (response != null && response.code() == 401) {
+                    if (!pollingExecutor.isShutdown() && !pollingExecutor.isTerminated()) {
+                        Log.e(TAG, "Wrong App Key or Secret - will stop sending data");
+                        pollingExecutor.shutdown();
+                        persistPollingExecutor.shutdown();
+                    }
+                } else {
+                    Log.e(TAG, "Error submitting periodical data to API");
+                }
             }
 
         });

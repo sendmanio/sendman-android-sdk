@@ -44,17 +44,18 @@ public class SendManAPIHandler {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                callback.onDataSendError();
+                callback.onDataSendError(null);
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 if (!response.isSuccessful()) {
-                    callback.onDataSendError();
+                    callback.onDataSendError(response);
                 } else {
                     callback.onDataSendSuccess();
                     Log.d(TAG, "Successfully set properties:" + new Gson().toJson(data));
                 }
+                response.close();
             }
         });
     }
@@ -95,6 +96,7 @@ public class SendManAPIHandler {
                         }
                     }
                 }
+                response.close();
             }
         });
     }
@@ -127,6 +129,7 @@ public class SendManAPIHandler {
                     SendManDataCollector.addSdkEvent(new SendManSDKEvent("User categories saved", null));
                     Log.d(TAG, "Successfully updated categories");
                 }
+                response.close();
             }
         });
     }
@@ -138,7 +141,7 @@ public class SendManAPIHandler {
     }
 
     public static class APICallback {
-        public void onDataSendError() {}
+        public void onDataSendError(Response response) {}
         public void onDataSendSuccess() {}
         public void onCategoriesRetrieved() {}
     }
