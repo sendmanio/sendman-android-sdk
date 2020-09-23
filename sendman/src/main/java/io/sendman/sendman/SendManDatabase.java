@@ -16,6 +16,7 @@ public class SendManDatabase {
 
 	private static final String SENDMAN_STORAGE = "sendman-storage";
 	private static final String SENDMAN_LAST_SESSION_KEY = "sendman-last-session-key";
+	private static final String SENDMAN_AUTO_USER_ID = "sendman-auto-user-id";
 
 	/** --- Data Members --- */
 
@@ -37,6 +38,20 @@ public class SendManDatabase {
 	public void setLastSession(SendManSession session) {
 		this.putObject(SENDMAN_STORAGE, SENDMAN_LAST_SESSION_KEY, session, true);
 	}
+
+	@Nullable
+	public String getAutoUserId() {
+		return this.getObject(SENDMAN_STORAGE, SENDMAN_AUTO_USER_ID, String.class);
+	}
+
+	public void setAutoUserId(String autoUserId) {
+		this.putObject(SENDMAN_STORAGE, SENDMAN_AUTO_USER_ID, autoUserId, true);
+	}
+
+	public void removeAutoUserId() {
+		this.remove(SENDMAN_STORAGE, SENDMAN_AUTO_USER_ID, true);
+	}
+
 
 	/** --- Storage Helpers --- */
 
@@ -141,11 +156,17 @@ public class SendManDatabase {
 		return false;
 	}
 
-	protected void remove(String storageKey, String key) {
+	protected boolean remove(String storageKey, String key, boolean waitForCommit) {
+		boolean success = true;
 		SharedPreferences sp = context.getSharedPreferences(storageKey, Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.remove(key);
-		editor.apply();
+		if (waitForCommit) {
+			success = editor.commit();
+		} else {
+			editor.apply();
+		}
+		return success;
 	}
 
 	protected void removeAll(String storageKey) {

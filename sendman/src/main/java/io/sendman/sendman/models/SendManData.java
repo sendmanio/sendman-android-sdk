@@ -4,19 +4,23 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class SendManData {
-    private String userId;
     private String externalUserId;
+    private String autoUserId;
     private SendManSession currentSession;
     private Map<String, SendManPropertyValue> customProperties;
     private Map<String, SendManPropertyValue> sdkProperties;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public String getAutoUserId() {
+        return autoUserId;
     }
 
     public void setExternalUserId(String externalUserId) {
         this.externalUserId = externalUserId;
+    }
+
+    public void setAutoUserId(String autoUserId) {
+        this.autoUserId = autoUserId;
     }
 
     public void setCurrentSession(SendManSession currentSession) {

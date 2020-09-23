@@ -48,6 +48,7 @@ public class SendManAPIHandler {
                 if (!response.isSuccessful()) {
                     callback.onDataSendError();
                 } else {
+                    callback.onDataSendSuccess();
                     System.out.println("Successfully set properties:" + new Gson().toJson(data));
                 }
             }
@@ -135,6 +136,7 @@ public class SendManAPIHandler {
 
     public static class APICallback {
         public void onDataSendError() {}
+        public void onDataSendSuccess() {}
         public void onCategoriesRetrieved() {}
     }
 

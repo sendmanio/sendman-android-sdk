@@ -106,41 +106,57 @@ public class SendManDataCollector {
         System.out.println("Preparing to send data");
 
         final SendManData data = new SendManData();
-        data.setExternalUserId(SendMan.getUserId());
+
+        String userId = SendMan.getUserId();
+        String autoUserId = new SendManDatabase(SendMan.getApplicationContext()).getAutoUserId();
+        if (!userId.equals(autoUserId)) {
+            data.setAutoUserId(autoUserId);
+        }
+        data.setExternalUserId(userId);
+
         data.setCurrentSession(SendManSessionManager.getInstance().getOrCreateSession());
 
-        final Map<String, SendManPropertyValue> currentCustomProperties = this.customProperties;
-        data.setCustomProperties(this.customProperties);
-        this.customProperties = new HashMap<>();
+        final HashMap<String, SendManPropertyValue> currentCustomProperties = new HashMap<>(this.customProperties);
+        data.setCustomProperties(currentCustomProperties);
+        this.customProperties.clear();
 
-        final Map<String, SendManPropertyValue> currentSDKProperties = this.sdkProperties;
-        data.setSdkProperties(this.sdkProperties);
-        this.sdkProperties = new HashMap<>();
+        final Map<String, SendManPropertyValue> currentSDKProperties = new HashMap<>(this.sdkProperties);
+        data.setSdkProperties(currentSDKProperties);
+        this.sdkProperties.clear();
 
-        final ArrayList<SendManSDKEvent> currentSDKEvents = this.sdkEvents;
-        data.setSdkEvents(this.sdkEvents);
-        this.sdkEvents = new ArrayList<>();
+        final ArrayList<SendManSDKEvent> currentSDKEvents =  new ArrayList<>(this.sdkEvents);
+        data.setSdkEvents(currentSDKEvents);
+        this.sdkEvents.clear();
 
         SendManAPIHandler.sendData(data, new SendManAPIHandler.APICallback() {
+            @Override
+            public void onDataSendSuccess() {
+                if (data.getAutoUserId() != null) { // This means auto Id was just overridden in the backend by an actual externalUserId
+                    new SendManDatabase(SendMan.getApplicationContext()).removeAutoUserId();
+                }
+            }
             @Override
             public void onDataSendError() {
                 if (SendManDataCollector.this.customProperties != null) {
                     for(Map.Entry<String, SendManPropertyValue> property : SendManDataCollector.this.customProperties.entrySet()) {
                         currentCustomProperties.put(property.getKey(), property.getValue());
                     }
-                    SendManDataCollector.this.customProperties = currentCustomProperties;
+                    SendManDataCollector.this.customProperties.clear();
+                    SendManDataCollector.this.customProperties.putAll(currentCustomProperties);
                 }
 
                 if (SendManDataCollector.this.sdkProperties != null) {
                     for (Map.Entry<String, SendManPropertyValue> property : SendManDataCollector.this.sdkProperties.entrySet()) {
                         currentSDKProperties.put(property.getKey(), property.getValue());
                     }
-                    SendManDataCollector.this.sdkProperties = currentSDKProperties;
+                    SendManDataCollector.this.sdkProperties.clear();
+                    SendManDataCollector.this.sdkProperties.putAll(currentSDKProperties);
                 }
 
                 if (SendManDataCollector.this.sdkEvents != null) {
                     currentSDKEvents.addAll(SendManDataCollector.this.sdkEvents);
-                    SendManDataCollector.this.sdkEvents = currentSDKEvents;
+                    SendManDataCollector.this.sdkEvents.clear();
+                    SendManDataCollector.this.sdkEvents.addAll(currentSDKEvents);
                 }
 
                 System.out.println("failed to set properties");
