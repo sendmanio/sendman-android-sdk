@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import io.sendman.sendman.SendMan;
+import io.sendman.sendman.SendManContextHelper;
 import io.sendman.sendman.SendManLifecycleHandler;
 import io.sendman.sendman.models.SendManMessageMetadata;
 import io.sendman.sendman.receivers.SendManNotificationClickedReceiver;
@@ -68,7 +69,7 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 		createNotificationChannel(metadata);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, metadata.getCategoryId())
-				.setSmallIcon(android.R.drawable.ic_popup_reminder) // TODO: make this customizable
+				.setSmallIcon(getSmallIconId(metadata))
 				.setContentTitle(title)
 				.setContentText(messageBody)
 				.setPriority(NotificationCompat.PRIORITY_MAX) // TODO: priority
@@ -109,6 +110,25 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 		Intent intent = new Intent(this, receiver);
 		intent.putExtra(SendManMessageMetadata.BUNDLE_EXTRA_IDENTIFIER, new Gson().toJson(metadata));
 		return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+	}
+
+	private static int getSmallIconId(SendManMessageMetadata metadata) {
+		String smallIconFromMessage = metadata.getSmallIconFilename();
+		if (smallIconFromMessage != null) {
+			int smallIconId = SendManContextHelper.getDrawableId(smallIconFromMessage);
+			if (smallIconId != 0) return smallIconId;
+		}
+
+		String smallIconFilenameFromConfig = SendMan.getConfig().getSmallIconFilename();
+		if (smallIconFilenameFromConfig != null) {
+			int smallIconId = SendManContextHelper.getDrawableId(smallIconFilenameFromConfig);
+			if (smallIconId != 0) return smallIconId;
+		}
+
+		int smallIconId = SendManContextHelper.getDrawableId("ic_default_small_sendman_notification");
+		if (smallIconId != 0) return smallIconId;
+
+		return android.R.drawable.ic_popup_reminder;
 	}
 
 }

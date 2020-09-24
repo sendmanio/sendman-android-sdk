@@ -34,6 +34,8 @@ public class SendManMessageMetadata {
 	private String parentCategoryName;
 	private String parentCategoryId;
 
+	private String smallIconFilename;
+
 	public String getTitle() {
 		return title;
 	}
@@ -67,6 +69,10 @@ public class SendManMessageMetadata {
 		return deserializationTimestamp;
 	}
 
+	public String getSmallIconFilename() {
+		return smallIconFilename;
+	}
+
 	public static SendManMessageMetadata fromJson(JSONObject messageMetadata) {
 		SendManMessageMetadata metadata = new SendManMessageMetadata();
 		try {
@@ -77,6 +83,7 @@ public class SendManMessageMetadata {
 			metadata.categoryDescription = messageMetadata.optString("smCategoryDescription", null);
 			metadata.categoryName = messageMetadata.optString("smCategoryName", null);
 			metadata.categoryId = messageMetadata.optString("smCategoryId", null);
+			metadata.smallIconFilename = messageMetadata.optString("smSmallIcon", null);
 			metadata.deserializationTimestamp = System.currentTimeMillis();
 		} catch (JSONException e) {
 			Log.w(TAG, "Cannot construct a metadata object when activityId or messageId are null.", e);
