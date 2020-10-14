@@ -24,7 +24,7 @@ class SendManDataEnricher {
         enrichedData.put(SM_DEVICE_SYSTEM_NAME_KEY, "Android");
         enrichedData.put(SM_DEVICE_SYSTEM_VERSION_KEY, Build.VERSION.RELEASE);
         enrichedData.put(SM_DEVICE_MODEL_KEY, Build.MODEL);
-        enrichedData.put(SM_SDK_VERSION_KEY, BuildConfig.VERSION_NAME);
+        enrichedData.put(SM_SDK_VERSION_KEY, BuildConfig.SDK_VERSION);
         return enrichedData;
     }
 }
