@@ -7,7 +7,7 @@ public class SendManSDKEvent implements SendManIdentifiable {
     private String key;
     private Object value;
     private String id;
-    private String messageId;
+    private String templateId;
     private String activityId;
     private long timestamp;
     private String notificationsRegistrationState;
@@ -31,12 +31,12 @@ public class SendManSDKEvent implements SendManIdentifiable {
         this.appState = appState;
     }
 
-    public String getMessageId() {
-        return messageId;
+    public String getTemplateId() {
+        return templateId;
     }
 
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
+    public void setTemplateId(String templateId) {
+        this.templateId = templateId;
     }
 
     public String getActivityId() {

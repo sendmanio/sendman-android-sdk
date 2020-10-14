@@ -12,16 +12,16 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-public class SendManMessageMetadata {
+public class SendManNotificationMetadata {
 
-	public static final String BUNDLE_EXTRA_IDENTIFIER = SendManMessageMetadata.class.getSimpleName();
+	public static final String BUNDLE_EXTRA_IDENTIFIER = SendManNotificationMetadata.class.getSimpleName();
 	private static final String TAG = BUNDLE_EXTRA_IDENTIFIER;
 
 	private String title;
 	private String body;
 
 	private String activityId;
-	private String messageId;
+	private String templateId;
 
 	private long deserializationTimestamp = System.currentTimeMillis();
 
@@ -48,8 +48,8 @@ public class SendManMessageMetadata {
 		return activityId;
 	}
 
-	public String getMessageId() {
-		return messageId;
+	public String getTemplateId() {
+		return templateId;
 	}
 
 	// TODO: null values
@@ -73,37 +73,37 @@ public class SendManMessageMetadata {
 		return smallIconFilename;
 	}
 
-	public static SendManMessageMetadata fromJson(JSONObject messageMetadata) {
-		SendManMessageMetadata metadata = new SendManMessageMetadata();
+	public static SendManNotificationMetadata fromJson(JSONObject notificationMetadata) {
+		SendManNotificationMetadata metadata = new SendManNotificationMetadata();
 		try {
-			metadata.title = messageMetadata.getString("title");
-			metadata.body = messageMetadata.getString("body");
-			metadata.activityId = messageMetadata.getString("smActivityId");
-			metadata.messageId = messageMetadata.getString("smMessageId");
-			metadata.categoryDescription = messageMetadata.optString("smCategoryDescription", null);
-			metadata.categoryName = messageMetadata.optString("smCategoryName", null);
-			metadata.categoryId = messageMetadata.optString("smCategoryId", null);
-			metadata.smallIconFilename = messageMetadata.optString("smSmallIcon", null);
+			metadata.title = notificationMetadata.getString("title");
+			metadata.body = notificationMetadata.getString("body");
+			metadata.activityId = notificationMetadata.getString("smActivityId");
+			metadata.templateId = notificationMetadata.getString("smTemplateId");
+			metadata.categoryDescription = notificationMetadata.optString("smCategoryDescription", null);
+			metadata.categoryName = notificationMetadata.optString("smCategoryName", null);
+			metadata.categoryId = notificationMetadata.optString("smCategoryId", null);
+			metadata.smallIconFilename = notificationMetadata.optString("smSmallIcon", null);
 			metadata.deserializationTimestamp = System.currentTimeMillis();
 		} catch (JSONException e) {
-			Log.w(TAG, "Cannot construct a metadata object when activityId or messageId are null.", e);
+			Log.w(TAG, "Cannot construct a metadata object when activityId or templateId are null.", e);
 			return null;
 		}
 		return metadata;
 	}
 
-	public static SendManMessageMetadata fromData(Map<String, ?> data) {
+	public static SendManNotificationMetadata fromData(Map<String, ?> data) {
 		return fromJson(new JSONObject(data));
 	}
 
-	public static SendManMessageMetadata fromIntent(@NonNull Intent intent, String packageName) {
+	public static SendManNotificationMetadata fromIntent(@NonNull Intent intent, String packageName) {
 		Bundle extras = intent.getExtras();
 
 		if (extras == null) {
 			return null;
 		}
 
-		SendManMessageMetadata metadata = new Gson().fromJson(intent.getStringExtra(BUNDLE_EXTRA_IDENTIFIER), SendManMessageMetadata.class);
+		SendManNotificationMetadata metadata = new Gson().fromJson(intent.getStringExtra(BUNDLE_EXTRA_IDENTIFIER), SendManNotificationMetadata.class);
 		metadata.deserializationTimestamp = System.currentTimeMillis();
 		return metadata;
 	}

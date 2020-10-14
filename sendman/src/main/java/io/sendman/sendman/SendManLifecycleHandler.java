@@ -25,7 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
-import io.sendman.sendman.models.SendManMessageMetadata;
+import io.sendman.sendman.models.SendManNotificationMetadata;
 import io.sendman.sendman.models.SendManSDKEvent;
 
 public class SendManLifecycleHandler implements LifecycleObserver {
@@ -35,7 +35,7 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 
 	private boolean inForeground;
 	private boolean isLaunch = true;
-	private SendManMessageMetadata latestUnprocessedMessageMetadata;
+	private SendManNotificationMetadata latestUnprocessedNotificationMetadata;
 	private Set<String> reportedActivityIds = new HashSet<>();
 
 	public synchronized static SendManLifecycleHandler getInstance() {
@@ -81,27 +81,27 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 
 	/* --- Broadcast Receiver callbacks --- */
 
-	public void onMessageReceived(SendManMessageMetadata metadata) {
+	public void onNotificationReceived(SendManNotificationMetadata metadata) {
 		if (metadata == null) {
 			Log.w(TAG, "Cannot report SendMan data for null data.");
 			return;
 		}
 
 		if (isInForeground()) {
-			SendManSDKEvent event = new SendManSDKEvent("Foreground Message Received", null);
+			SendManSDKEvent event = new SendManSDKEvent("Foreground Notification Received", null);
 			event.setActivityId(metadata.getActivityId());
-			event.setMessageId(metadata.getMessageId());
+			event.setTemplateId(metadata.getTemplateId());
 			event.setAppState("Active");
 			SendManDataCollector.addSdkEvent(event);
 		}
 	}
 
-	public void onMessageClicked(SendManMessageMetadata metadata) {
-		latestUnprocessedMessageMetadata = metadata;
+	public void onNotificationClicked(SendManNotificationMetadata metadata) {
+		latestUnprocessedNotificationMetadata = metadata;
 	}
 
 	// TODO
-	public void onMessageDismissed(SendManMessageMetadata metadata) {}
+	public void onNotificationDismissed(SendManNotificationMetadata metadata) {}
 
 	/* --- LifeCycle events --- */
 
@@ -110,10 +110,10 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 		inForeground = true;
 
 		if (shouldReportEngagement()) {
-			SendManSDKEvent engagementEvent = new SendManSDKEvent("Background Message Opened", null);
-			String activityId = latestUnprocessedMessageMetadata.getActivityId();
+			SendManSDKEvent engagementEvent = new SendManSDKEvent("Background Notification Opened", null);
+			String activityId = latestUnprocessedNotificationMetadata.getActivityId();
 			engagementEvent.setActivityId(activityId);
-			engagementEvent.setMessageId(latestUnprocessedMessageMetadata.getMessageId());
+			engagementEvent.setTemplateId(latestUnprocessedNotificationMetadata.getTemplateId());
 			engagementEvent.setAppState(isLaunch ? "Killed" : "Background");
 			SendManDataCollector.addSdkEvent(engagementEvent);
 			reportedActivityIds.add(activityId);
@@ -129,7 +129,7 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 		}
 		SendManDataCollector.addSdkEvent(foregroundEvent);
 
-		latestUnprocessedMessageMetadata = null;
+		latestUnprocessedNotificationMetadata = null;
 		isLaunch = false;
 	}
 
@@ -161,9 +161,9 @@ public class SendManLifecycleHandler implements LifecycleObserver {
 
 	private boolean shouldReportEngagement() {
 		return (
-			latestUnprocessedMessageMetadata != null &&
-			!reportedActivityIds.contains(latestUnprocessedMessageMetadata.getActivityId()) &&
-			isRecentTimestamp(latestUnprocessedMessageMetadata.getDeserializationTimestamp())
+			latestUnprocessedNotificationMetadata != null &&
+			!reportedActivityIds.contains(latestUnprocessedNotificationMetadata.getActivityId()) &&
+			isRecentTimestamp(latestUnprocessedNotificationMetadata.getDeserializationTimestamp())
 		);
 	}
 

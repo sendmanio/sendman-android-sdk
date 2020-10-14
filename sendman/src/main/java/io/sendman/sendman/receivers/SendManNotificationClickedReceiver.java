@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import io.sendman.sendman.SendManLifecycleHandler;
-import io.sendman.sendman.models.SendManMessageMetadata;
+import io.sendman.sendman.models.SendManNotificationMetadata;
 
 public class SendManNotificationClickedReceiver extends BroadcastReceiver {
 
@@ -20,7 +20,7 @@ public class SendManNotificationClickedReceiver extends BroadcastReceiver {
 				.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		context.startActivity(openAppIntent);
 
-		SendManMessageMetadata metadata = SendManMessageMetadata.fromIntent(intent, context.getPackageName());
-		SendManLifecycleHandler.getInstance().onMessageClicked(metadata);
+		SendManNotificationMetadata metadata = SendManNotificationMetadata.fromIntent(intent, context.getPackageName());
+		SendManLifecycleHandler.getInstance().onNotificationClicked(metadata);
 	}
 }

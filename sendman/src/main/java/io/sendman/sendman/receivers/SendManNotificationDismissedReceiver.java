@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import io.sendman.sendman.SendManLifecycleHandler;
-import io.sendman.sendman.models.SendManMessageMetadata;
+import io.sendman.sendman.models.SendManNotificationMetadata;
 
 public class SendManNotificationDismissedReceiver extends BroadcastReceiver {
 
@@ -19,7 +19,7 @@ public class SendManNotificationDismissedReceiver extends BroadcastReceiver {
 		String activityId = extras != null ? extras.getString("activityId", "no activity") : "no activity";
 		Log.i(TAG, "Notification deleted: " + activityId);
 
-		SendManMessageMetadata metadata = SendManMessageMetadata.fromIntent(intent, context.getPackageName());
-		SendManLifecycleHandler.getInstance().onMessageDismissed(metadata);
+		SendManNotificationMetadata metadata = SendManNotificationMetadata.fromIntent(intent, context.getPackageName());
+		SendManLifecycleHandler.getInstance().onNotificationDismissed(metadata);
 	}
 }

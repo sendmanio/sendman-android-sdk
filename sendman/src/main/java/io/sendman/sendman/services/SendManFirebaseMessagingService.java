@@ -23,7 +23,7 @@ import androidx.core.app.NotificationManagerCompat;
 import io.sendman.sendman.SendMan;
 import io.sendman.sendman.SendManContextHelper;
 import io.sendman.sendman.SendManLifecycleHandler;
-import io.sendman.sendman.models.SendManMessageMetadata;
+import io.sendman.sendman.models.SendManNotificationMetadata;
 import io.sendman.sendman.receivers.SendManNotificationClickedReceiver;
 import io.sendman.sendman.receivers.SendManNotificationDismissedReceiver;
 
@@ -43,13 +43,13 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 	public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
 		super.onMessageReceived(remoteMessage);
 
-		SendManMessageMetadata metadata = SendManMessageMetadata.fromData(remoteMessage.getData());
+		SendManNotificationMetadata metadata = SendManNotificationMetadata.fromData(remoteMessage.getData());
 		if (metadata == null) {
 			Log.i(TAG, "Received a remote message without SendMan data - will not process it in SendMan.");
 			return;
 		}
 
-		SendManLifecycleHandler.getInstance().onMessageReceived(metadata);
+		SendManLifecycleHandler.getInstance().onNotificationReceived(metadata);
 
 		if (shouldDisplayForegroundNotification() || !SendManLifecycleHandler.getInstance().isInForeground()) {
 			displayNotification(metadata);
@@ -62,16 +62,16 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 		return true;
 	}
 
-	protected void displayNotification(SendManMessageMetadata metadata) {
+	protected void displayNotification(SendManNotificationMetadata metadata) {
 		String title = metadata.getTitle();
-		String messageBody = metadata.getBody();
+		String notificationBody = metadata.getBody();
 
 		createNotificationChannel(metadata);
 
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, metadata.getCategoryId())
 				.setSmallIcon(getSmallIconId(metadata))
 				.setContentTitle(title)
-				.setContentText(messageBody)
+				.setContentText(notificationBody)
 				.setPriority(NotificationCompat.PRIORITY_MAX) // TODO: priority
 				.setDefaults(NotificationCompat.DEFAULT_LIGHTS | NotificationCompat.DEFAULT_VIBRATE)
 				.setContentIntent(createIntentForReceiver(SendManNotificationClickedReceiver.class, metadata))
@@ -84,7 +84,7 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 		notificationManager.notify(metadata.getActivityId(), getNotificationIdForActivityId(metadata.getActivityId()), mBuilder.build());
 	}
 
-	private void createNotificationChannel(SendManMessageMetadata metadata) {
+	private void createNotificationChannel(SendManNotificationMetadata metadata) {
 		// Create the NotificationChannel, but only on API 26+ because
 		// the NotificationChannel class is new and not in the support library
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -106,16 +106,16 @@ public class SendManFirebaseMessagingService extends FirebaseMessagingService {
 		return activityIdsToNotificationIds.get(activityId);
 	}
 
-	private PendingIntent createIntentForReceiver(Class<? extends BroadcastReceiver> receiver, SendManMessageMetadata metadata) {
+	private PendingIntent createIntentForReceiver(Class<? extends BroadcastReceiver> receiver, SendManNotificationMetadata metadata) {
 		Intent intent = new Intent(this, receiver);
-		intent.putExtra(SendManMessageMetadata.BUNDLE_EXTRA_IDENTIFIER, new Gson().toJson(metadata));
+		intent.putExtra(SendManNotificationMetadata.BUNDLE_EXTRA_IDENTIFIER, new Gson().toJson(metadata));
 		return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 	}
 
-	private static int getSmallIconId(SendManMessageMetadata metadata) {
-		String smallIconFromMessage = metadata.getSmallIconFilename();
-		if (smallIconFromMessage != null) {
-			int smallIconId = SendManContextHelper.getDrawableId(smallIconFromMessage);
+	private static int getSmallIconId(SendManNotificationMetadata metadata) {
+		String smallIconFromNotification = metadata.getSmallIconFilename();
+		if (smallIconFromNotification != null) {
+			int smallIconId = SendManContextHelper.getDrawableId(smallIconFromNotification);
 			if (smallIconId != 0) return smallIconId;
 		}
 
