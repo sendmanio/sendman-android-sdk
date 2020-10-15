@@ -27,6 +27,8 @@ public class SendManDataCollector {
     private Map<String, SendManPropertyValue> sdkProperties;
     private ArrayList<SendManSDKEvent> sdkEvents;
 
+    private boolean checkActiveUser = true;
+
     public synchronized static SendManDataCollector getInstance() {
         if (instance == null) {
             instance = new SendManDataCollector();
@@ -111,6 +113,7 @@ public class SendManDataCollector {
         Log.d(TAG, "Preparing to submit periodical data to API");
 
         final SendManData data = new SendManData();
+        if (this.checkActiveUser) data.setCheckActiveUser(true);
 
         String userId = SendMan.getUserId();
         String autoUserId = new SendManDatabase(SendMan.getApplicationContext()).getAutoUserId();
@@ -139,6 +142,7 @@ public class SendManDataCollector {
                 if (data.getAutoUserId() != null) { // This means auto Id was just overridden in the backend by an actual externalUserId
                     new SendManDatabase(SendMan.getApplicationContext()).removeAutoUserId();
                 }
+                SendManDataCollector.this.checkActiveUser = false;
             }
             @Override
             public void onDataSendError(Response response) {

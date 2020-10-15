@@ -10,6 +10,7 @@ public class SendManData {
     private Map<String, SendManPropertyValue> customProperties;
     private Map<String, SendManPropertyValue> sdkProperties;
     private ArrayList<SendManSDKEvent> sdkEvents;
+    private boolean checkActiveUser;
 
     public String getAutoUserId() {
         return autoUserId;
@@ -37,5 +38,9 @@ public class SendManData {
 
     public void setSdkEvents(ArrayList<SendManSDKEvent> sdkEvents) {
         this.sdkEvents = sdkEvents;
+    }
+
+    public void setCheckActiveUser(boolean checkActiveUser) {
+        this.checkActiveUser = checkActiveUser;
     }
 }

@@ -33,12 +33,17 @@ public class SendManAPIHandler {
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+    private static boolean preventFurtherServerCalls = false;
+
     static void sendData(final SendManData data, final APICallback callback) {
+        String url = SendManAPIHandler.getUrlFromPath("user/data", "POST");
+        if (url == null) return;
+
         OkHttpClient client = SendManAPIHandler.getSendManClient();
         String json = new Gson().toJson(data);
         RequestBody body = RequestBody.create(json, JSON);
         Request request = new Request.Builder()
-                .url(SendManAPIHandler.getUrlFromPath("user/data"))
+                .url(url)
                 .post(body)
                 .build();
         client.newCall(request).enqueue(new Callback() {
@@ -51,6 +56,9 @@ public class SendManAPIHandler {
             public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 if (!response.isSuccessful()) {
                     callback.onDataSendError(response);
+                    if (response.code() == 403) {
+                        preventFurtherServerCalls = true;
+                    }
                 } else {
                     callback.onDataSendSuccess();
                     Log.d(TAG, "Successfully set properties:" + new Gson().toJson(data));
@@ -61,12 +69,15 @@ public class SendManAPIHandler {
     }
 
     public static void getCategories(final APICallback callback) {
+        String url = SendManAPIHandler.getUrlFromPath("categories/user/" + SendMan.getUserId(), "GET");
+        if (url == null) return;
+
         SendManConfig config = SendMan.getConfig();
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new BasicAuthInterceptor(config.getAppKey(), config.getAppSecret()))
                 .build();
         Request request = new Request.Builder()
-                .url(SendManAPIHandler.getUrlFromPath("categories/user/" + SendMan.getUserId()))
+                .url(url)
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -102,6 +113,9 @@ public class SendManAPIHandler {
     }
 
     public static void updateCategories(List<SendManCategory> categories) {
+        String url = SendManAPIHandler.getUrlFromPath("categories/user/" + SendMan.getUserId(), "POST");
+        if (url == null) return;
+
         OkHttpClient client = SendManAPIHandler.getSendManClient();
         JSONArray jsonCategories = SendManCategories.toJson(categories);
         JSONObject categoriesBody = new JSONObject();
@@ -112,7 +126,7 @@ public class SendManAPIHandler {
         }
         RequestBody body = RequestBody.create(categoriesBody.toString(), JSON);
         Request request = new Request.Builder()
-                .url(SendManAPIHandler.getUrlFromPath("categories/user/" + SendMan.getUserId()))
+                .url(url)
                 .post(body)
                 .build();
         client.newCall(request).enqueue(new Callback() {
@@ -134,7 +148,12 @@ public class SendManAPIHandler {
         });
     }
 
-    private static String getUrlFromPath(String path) {
+    private static String getUrlFromPath(String path, String method) {
+        if (preventFurtherServerCalls) {
+            Log.i(TAG, method + " Request for URL \"" + path + "\" ignored after previous 403 response from server.");
+            return null;
+        }
+
         SendManConfig config = SendMan.getConfig();
         String serverUrl = config.getServerUrl() != null ? config.getServerUrl() : "https://api.sendman.io/app-sdk";
         return serverUrl + '/' + path;
