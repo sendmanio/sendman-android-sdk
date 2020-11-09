@@ -5,7 +5,7 @@ apply plugin: 'com.jfrog.bintray'
 ext {
     publishedGroupId = 'io.sendman.sdk'
     artifact = 'sendman'
-    libraryVersion = '1.0.0'
+    libraryVersion = '1.0.1'
 
     bintrayRepo = 'maven'
     bintrayName = "$publishedGroupId:$artifact"
