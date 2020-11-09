@@ -69,6 +69,13 @@ public class SendManAPIHandler {
     }
 
     public static void getCategories(final APICallback callback) {
+        if (!SendMan.isSdkInitialized()) {
+            Log.d(TAG, "Cannot get categories if SDK is not initialized");
+            return;
+        }
+
+        Log.d(TAG, "Getting user categories");
+
         String url = SendManAPIHandler.getUrlFromPath("categories/user/" + SendMan.getUserId(), "GET");
         if (url == null) return;
 
@@ -98,6 +105,7 @@ public class SendManAPIHandler {
                         JSONObject jsonResponse = new JSONObject(Objects.requireNonNull(response.body()).string());
                         List<SendManCategory> categories = SendManCategories.fromJson(jsonResponse.getJSONArray("categories"));
                         SendMan.setUserCategories(categories);
+                        Log.d(TAG, "Succesfully received user categories");
                         if (callback != null) {
                             callback.onCategoriesRetrieved();
                         }
@@ -113,6 +121,13 @@ public class SendManAPIHandler {
     }
 
     public static void updateCategories(List<SendManCategory> categories) {
+        if (!SendMan.isSdkInitialized()) {
+            Log.d(TAG, "Cannot update categories if SDK is not initialized");
+            return;
+        }
+
+        Log.d(TAG, "About to update user categories");
+
         String url = SendManAPIHandler.getUrlFromPath("categories/user/" + SendMan.getUserId(), "POST");
         if (url == null) return;
 
@@ -155,7 +170,7 @@ public class SendManAPIHandler {
         }
 
         SendManConfig config = SendMan.getConfig();
-        String serverUrl = config.getServerUrl() != null ? config.getServerUrl() : "https://api.sendman.io/app-sdk";
+        String serverUrl = config != null && config.getServerUrl() != null ? config.getServerUrl() : "https://api.sendman.io/app-sdk";
         return serverUrl + '/' + path;
     }
 

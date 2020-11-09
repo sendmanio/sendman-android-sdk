@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -21,11 +22,15 @@ public class SendManDataCollector {
     private static SendManDataCollector instance = null;
 
     private final ScheduledExecutorService pollingExecutor;
-    private final ScheduledExecutorService persistPollingExecutor;
 
-    private Map<String, SendManPropertyValue> customProperties;
-    private Map<String, SendManPropertyValue> sdkProperties;
-    private ArrayList<SendManSDKEvent> sdkEvents;
+    private Runnable pollWithDataRunnable;
+    private Runnable persistRunnable;
+
+    private final Map<String, SendManPropertyValue> customProperties;
+    private final Map<String, SendManPropertyValue> sdkProperties;
+    private final List<SendManSDKEvent> sdkEvents;
+
+    private int exponentialNetworkFailureBackOff = 1;
 
     private boolean checkActiveUser = true;
 
@@ -40,20 +45,32 @@ public class SendManDataCollector {
         this.customProperties = new HashMap<>();
         this.sdkProperties = new HashMap<>();
         this.sdkEvents = new ArrayList<>();
-        pollingExecutor = this.pollForNewData(2, false);
-        persistPollingExecutor = this.pollForNewData(60, true);
+
+        this.pollingExecutor = Executors.newScheduledThreadPool(1);
+        this.pollForNewData(2, false);
+        this.pollForNewData(60, true);
     }
 
-    private ScheduledExecutorService pollForNewData(int secondsInterval, final Boolean persistSession) {
-        Runnable newDataRunnable = new Runnable() {
+    private void pollForNewData(final int secondsInterval, final Boolean persistSession) {
+        Runnable runnable = new Runnable() {
             public void run() {
                 SendManDataCollector.getInstance().sendData(persistSession);
+                pollingExecutor.schedule(
+                        persistSession ? persistRunnable : pollWithDataRunnable,
+                        secondsInterval * exponentialNetworkFailureBackOff,
+                        TimeUnit.SECONDS);
             }
         };
+        pollingExecutor.schedule(runnable, secondsInterval, TimeUnit.SECONDS);
+        saveRunnable(runnable, persistSession);
+    }
 
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(newDataRunnable, 0, secondsInterval, TimeUnit.SECONDS);
-        return executor;
+    private void saveRunnable(Runnable runnable, Boolean persistSession) {
+        if (persistSession) {
+            persistRunnable = runnable;
+        } else {
+            pollWithDataRunnable = runnable;
+        }
     }
 
     public void startSession() {
@@ -143,6 +160,7 @@ public class SendManDataCollector {
                     new SendManDatabase(SendMan.getApplicationContext()).removeAutoUserId();
                 }
                 SendManDataCollector.this.checkActiveUser = false;
+                SendManDataCollector.this.exponentialNetworkFailureBackOff = 1;
             }
             @Override
             public void onDataSendError(Response response) {
@@ -173,10 +191,12 @@ public class SendManDataCollector {
                     if (!pollingExecutor.isShutdown() && !pollingExecutor.isTerminated()) {
                         Log.e(TAG, "Wrong App Key or Secret - will stop sending data");
                         pollingExecutor.shutdown();
-                        persistPollingExecutor.shutdown();
                     }
+                } else if (response == null) {
+                    SendManDataCollector.this.exponentialNetworkFailureBackOff *= 2;
+                    Log.e(TAG, "A network error has occurred while submitting periodical data to API, setting backoff multiplier to " + exponentialNetworkFailureBackOff);
                 } else {
-                    Log.e(TAG, "Error submitting periodical data to API");
+                    Log.e(TAG, "An unknown error has occurred while submitting periodical data to API");
                 }
             }
 

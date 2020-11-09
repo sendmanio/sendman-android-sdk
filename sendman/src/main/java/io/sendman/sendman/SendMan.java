@@ -24,6 +24,7 @@ public class SendMan {
     private String smUserId;
     private List<SendManCategory> categories;
     private Context applicationContext;
+    private boolean sdkInitialized = false;
 
     public synchronized static SendMan getInstance() {
         if (instance == null) {
@@ -40,6 +41,10 @@ public class SendMan {
         return SendMan.getInstance().smUserId;
     }
 
+    public static boolean isSdkInitialized() {
+        return SendMan.getInstance().sdkInitialized;
+    }
+
     public static List<SendManCategory> getCategories() {
         return SendMan.getInstance().categories != null ? SendMan.getInstance().categories  : new ArrayList<SendManCategory>();
     }
@@ -47,18 +52,25 @@ public class SendMan {
     public static void setAppConfig(SendManConfig config) {
         SendMan.getInstance().config = config;
         if (config.getAutoGenerateUsers()) {
-            SendManDatabase storage = new SendManDatabase(SendMan.getApplicationContext());
-            String autoUserId = storage.getAutoUserId();
-            if (autoUserId == null) {
-                autoUserId = UUID.randomUUID().toString();
-                storage.setAutoUserId(autoUserId);
+            if (SendMan.getInstance().smUserId != null) {
+                SendManDatabase storage = new SendManDatabase(SendMan.getApplicationContext());
+                String autoUserId = storage.getAutoUserId();
+                if (autoUserId == null) {
+                    autoUserId = UUID.randomUUID().toString();
+                    storage.setAutoUserId(autoUserId);
+                }
+                SendMan.setUserIdNoValidations(autoUserId);
+            } else {
+                Log.e(SendMan.class.getSimpleName(), "Ignoring autoGenerateUsers because the userId has already been explicitly set.");
             }
-            SendMan.setUserIdNoValidations(autoUserId);
         }
+
+        startSessionIfInitialized();
     }
 
     public static void setUserId(String smUserId) {
-        if (SendMan.getConfig().getAutoGenerateUsers()) {
+        SendManConfig config = SendMan.getConfig();
+        if (config != null && config.getAutoGenerateUsers()) {
             Log.e(SendMan.class.getSimpleName(), "Cannot set userId on autoGenerateUsers mode");
         } else {
             SendMan.setUserIdNoValidations(smUserId);
@@ -67,8 +79,7 @@ public class SendMan {
 
     private static void setUserIdNoValidations(String smUserId) {
         SendMan.getInstance().smUserId = smUserId;
-        SendManDataCollector.getInstance().startSession();
-        SendManAPIHandler.getCategories(null);
+        startSessionIfInitialized();
     }
 
     public static void setFCMToken(@NonNull String token) {
@@ -76,6 +87,15 @@ public class SendMan {
         properties.put(SM_TOKEN, token);
         properties.put(SM_TOKEN_TYPE, "fcm");
         SendManDataCollector.setSdkProperties(properties);
+    }
+
+    private static void startSessionIfInitialized() {
+        SendMan sendman = SendMan.getInstance();
+        if (!sendman.sdkInitialized && sendman.config != null && sendman.smUserId != null) {
+            sendman.sdkInitialized = true;
+            SendManDataCollector.getInstance().startSession();
+            SendManAPIHandler.getCategories(null);
+        }
     }
 
     public static void setUserCategories(List<SendManCategory> categories) {
